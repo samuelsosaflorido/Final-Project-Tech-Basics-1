@@ -11,6 +11,7 @@
 
 import pygame
 import math
+from inventory import Inventory
 
 # Configuration
 # Here I have defined the main variables as well as the requisites for the puzzle and the width and height for the screens
@@ -82,7 +83,7 @@ class HangmanPuzzle:
 # Drawing functions
 # In this section I had to use the help of Gemini. Nevertheless, I wrote the code by myself trying to understand how to draw the different boxes
 def draw_dialogue_box(screen, font, small_font, dialogue_data):
-    """Renders dialogue text and player branching options"""
+    # Renders dialogue text and player branching options
     overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
     overlay.fill((*COLOR_FOG, 200))
     screen.blit(overlay, (0, 0))
@@ -108,70 +109,6 @@ def draw_dialogue_box(screen, font, small_font, dialogue_data):
         opt_surf = small_font.render(f"[{opt_key}] {opt_text}", True, opt_color)
         screen.blit(opt_surf, (box_x + 18, opt_y))
         opt_y += 22
-
-# This is just temporary maybe we need to fix this once we create the inventory file
-def draw_inventory_screen(screen, inventory, selected_idx, font, small_font):
-    # This renders the entire inventory which maybe we can use as the basis for the ivnentory file 
-    overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
-    overlay.fill((6, 4, 8, 225))
-    screen.blit(overlay, (0, 0))
-
-    # This defines how big is the main menu for the inventory
-    panel_w, panel_h = 680, 240
-    panel_x = (WINDOW_WIDTH - panel_w) // 2
-    panel_y = (WINDOW_HEIGHT - panel_h) // 2
-    panel_rect = pygame.Rect(panel_x, panel_y, panel_w, panel_h)
-
-    pygame.draw.rect(screen, (15, 10, 15), panel_rect, border_radius=6)
-    pygame.draw.rect(screen, COLOR_BLOOD, panel_rect, 2, border_radius=6)
-
-    title_surf = font.render("INVENTORY / POCKETS", True, COLOR_BONE)
-    screen.blit(title_surf, (panel_x + 20, panel_y + 15))
-
-    slot_size, gap = 50, 12
-    start_x, start_y = panel_x + 25, panel_y + 50
-
-# This is a conditional loop to create 8 slots for the inventory
-# Each slot has its corresponding coordinate for it to make sense sense
-    for i in range(8):
-        col, row = i % 4, i // 4
-        sx = start_x + col * (slot_size + gap)
-        sy = start_y + row * (slot_size + gap)
-        slot_rect = pygame.Rect(sx, sy, slot_size, slot_size)
-
-        if i == selected_idx:
-            pygame.draw.rect(screen, (60, 15, 20), slot_rect, border_radius=4)
-            pygame.draw.rect(screen, COLOR_GOLD, slot_rect, 2, border_radius=4)
-        else:
-            pygame.draw.rect(screen, (25, 20, 25), slot_rect, border_radius=4)
-            pygame.draw.rect(screen, (80, 75, 70), slot_rect, 1, border_radius=4)
-
-        if i < len(inventory):
-            short_name = inventory[i][:4].upper()
-            name_surf = small_font.render(short_name, True, COLOR_BONE)
-            screen.blit(name_surf, (sx + 6, sy + 18))
-
-    # Right details panel
-    desc_x, desc_y, desc_w, desc_h = panel_x + 285, panel_y + 50, 365, 120
-    pygame.draw.rect(screen, (10, 8, 12), (desc_x, desc_y, desc_w, desc_h), border_radius=4)
-    pygame.draw.rect(screen, (50, 40, 45), (desc_x, desc_y, desc_w, desc_h), 1, border_radius=4)
-
-# This is basically when the player obtains a valid object
-    # It obtains the name of it and renders the name
-    if 0 <= selected_idx < len(inventory):
-        item_name = inventory[selected_idx]
-        item_title = font.render(item_name, True, COLOR_GOLD)
-        screen.blit(item_title, (desc_x + 12, desc_y + 10))
-
-        if "Memory Note" in item_name:
-            act_surf = small_font.render("[Press E to Read Note]", True, (120, 200, 140))
-            screen.blit(act_surf, (desc_x + 12, desc_y + desc_h - 22))
-    else:
-        empty_surf = small_font.render("Slot Empty", True, (100, 95, 95))
-        screen.blit(empty_surf, (desc_x + 12, desc_y + 12)) # This is when the slot is completely empty, so it shows it with the gray color
-
-    controls_surf = small_font.render("[ARROWS] Select Slot | [I / TAB / ESC] Close", True, (140, 135, 130))
-    screen.blit(controls_surf, (panel_x + 20, panel_y + panel_h - 22))
 
 # I thought it was a good idea to introduce some monologues within the game
 # Particularly when the main character encounters certain situations or obtains specific object
@@ -202,7 +139,7 @@ def draw_monologue_box(screen, font, small_font, speaker_name, text_line):
 
 
 def draw_note_reading(screen, font, small_font, text_lines):
-    """Renders the inspectable note document"""
+    # Renders the inspectable note document
     overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
     overlay.fill((*COLOR_VOID, 230))
     screen.blit(overlay, (0, 0))
@@ -267,7 +204,7 @@ def draw_hangman_popup(screen, puzzle, font, small_font, big_font):
     pygame.draw.rect(screen, COLOR_VOID, box_rect, border_radius=6)
     pygame.draw.rect(screen, COLOR_BLOOD, box_rect, 2, border_radius=6)
 
-    title = font.render("THE GHOST'S RIDDLE", True, COLOR_BONE)
+    title = font.render("The Ghost of the Yard Puzzle", True, COLOR_BONE)
     screen.blit(title, (box_x + box_width // 2 - title.get_width() // 2, box_y + 12))
 
     draw_hangman_figure(screen, box_x + 40, box_y + 40, puzzle.wrong_guesses)
@@ -407,8 +344,7 @@ def main():
     pygame.display.set_caption("The Ghost's Puzzle")
     clock = pygame.time.Clock()
 
-    inventory = []
-    inv_selected_idx = 0
+    inventory = Inventory()
 
     font = pygame.font.SysFont(None, 22)
     small_font = pygame.font.SysFont(None, 18)
@@ -529,7 +465,7 @@ def main():
                         elif dist_dumbbells < 50:
                             if not key_fragment_found:
                                 key_fragment_found = True
-                                inventory.append("Key fragment (Yard)")
+                                inventory.add_item("Key Fragment 1")
                                 monologue_lines = [
                                     "You try to move the heavy dumbbells to inspect as you have found something interesting",
                                     "Trapped underneath you discover a fragment of an old key.",
@@ -548,12 +484,12 @@ def main():
                     # Dig action with Shovel
 
                     elif event.key == pygame.K_SPACE:
-                        if "Shovel" in inventory:
+                        if "Spade" in inventory.items:
                             dist_to_spot = math.hypot(player.x - DIG_TARGET_X, player.y - DIG_TARGET_Y)
                             if dist_to_spot < 35:
                                 if not hole_dug:
                                     hole_dug = True
-                                    inventory.append("Medication Fragment (Yard)")
+                                    inventory.add_item("Medication Fragment 1")
                                     feedback_message = "You managed to obtain the Medication fragment!"
                                     feedback_timer = 180
                                 else:
@@ -579,15 +515,15 @@ def main():
                 # For the player basically to handle the inventory.
                 elif game_state == "INVENTORY":
                     if event.key == pygame.K_RIGHT:
-                        inv_selected_idx = (inv_selected_idx + 1) % 8
+                        inventory.move_selection(1)
                     elif event.key == pygame.K_LEFT:
-                        inv_selected_idx = (inv_selected_idx - 1) % 8
+                        inventory.move_selection(-1)
                     elif event.key in (pygame.K_ESCAPE, pygame.K_i, pygame.K_TAB):
                         game_state = "EXPLORE"
                     elif event.key == pygame.K_e:
-                        if 0 <= inv_selected_idx < len(inventory):
-                            if "Memory Note" in inventory[inv_selected_idx]:
-                                game_state = "READ_NOTE"
+                        selected = inventory.get_selected_item()
+                        if selected and "Strange Note" in selected:
+                            game_state = "READ_NOTE"
 
                 # Inner monologue after reading the note
                 elif game_state == "READ_NOTE":
@@ -625,7 +561,7 @@ def main():
                         puzzle.guess(chr(event.key))
 
                         if puzzle.solved and not puzzle.reward_claimed:
-                            inventory.append("Shovel")
+                            inventory.add_item("Spade")
                             puzzle.reward_claimed = True
 
                 # Weights state handlers
@@ -634,10 +570,10 @@ def main():
                         weights_progress += 12.0
                         if weights_progress >= 100.0:
                             weights_cleared = True
-                            if "Memory Note (Code: 74-)" not in inventory:
-                                inventory.append("Memory Note (Code: 74-)")
+                            if "Strange Note 1" not in inventory.items:
+                                inventory.add_item("Strange Note 1")
 
-                            # Narrative prints when unlocking the note
+                            # Reaction of the player
                             print("\nYour hands start shaking after lifting the weights")
                             print("You find some strange note. Your hands start shaking. You feel something familiar...")
                             print("You say to yourself: 'This is so odd...Why am I feeling like this?'")
@@ -692,11 +628,11 @@ def main():
 
             # Inventory display
             # The idea of introducing the TAB option came from the Resident Evil games in which normally you press this button to use the inventory 
-            inv_surf = small_font.render(f"Inventory [I/TAB]: {', '.join(inventory) if inventory else 'Empty'}", True, COLOR_BONE)
+            inv_surf = small_font.render(f"Inventory [I/TAB]: {', '.join(inventory.items) if inventory.items else 'Empty'}", True, COLOR_BONE)
             screen.blit(inv_surf, (15, 10))
 
             # Dig action hint
-            if "Shovel" in inventory and not hole_dug:
+            if "Spade" in inventory.items and not hole_dug:
                 shovel_hint = small_font.render("Press [SPACE] to Dig with Shovel", True, (120, 200, 140))
                 screen.blit(shovel_hint, (15, 28))
 
@@ -706,8 +642,7 @@ def main():
                 screen.blit(feed_surf, (WINDOW_WIDTH // 2 - feed_surf.get_width() // 2, WINDOW_HEIGHT - 45))
                 feedback_timer -= 1
 
-        # Render active overlays
-      
+        
         elif game_state == "DIALOGUE":
             draw_dialogue_box(screen, font, small_font, dialogue_nodes[current_dialogue])
 
@@ -718,7 +653,7 @@ def main():
             draw_weights_minigame(screen, weights_progress, font, small_font)
 
         elif game_state == "INVENTORY":
-            draw_inventory_screen(screen, inventory, inv_selected_idx, font, small_font)
+            inventory.draw(screen, font, small_font)
 
         elif game_state == "READ_NOTE":
             draw_note_reading(screen, font, small_font, note_text)
