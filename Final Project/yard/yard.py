@@ -34,7 +34,7 @@ COLOR_SICKLY = (150, 180, 140)
 COLOR_BONE = (210, 205, 190)
 COLOR_FOG = (40, 10, 15)
 COLOR_GOLD = (212, 175, 55)
-COLOR_STICKMAN = (235, 230, 220) # oh yeah, I did this because we still don't have the design of the main character so decided to make a stickman just to test it out lol
+COLOR_STICKMAN = (235, 230, 220) # oh yeah, I did this just to test it out lol
 COLOR_DIRT = (60, 35, 25)
 COLOR_NOTE = (230, 220, 190)
 
@@ -111,7 +111,7 @@ def draw_dialogue_box(screen, font, small_font, dialogue_data):
 
 # This is just temporary maybe we need to fix this once we create the inventory file
 def draw_inventory_screen(screen, inventory, selected_idx, font, small_font):
-    """Renders the the inventory with the grid overlay"""
+    # This renders the entire inventory which maybe we can use as the basis for the ivnentory file 
     overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
     overlay.fill((6, 4, 8, 225))
     screen.blit(overlay, (0, 0))
@@ -178,7 +178,7 @@ def draw_inventory_screen(screen, inventory, selected_idx, font, small_font):
 # I also added the coordinates of the dialogue box
 
 def draw_monologue_box(screen, font, small_font, speaker_name, text_line):
-    """Renders protagonist's thoughts"""
+    # This section basically renders the protagonist thinking 
     overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
     overlay.fill((*COLOR_FOG, 190))
     screen.blit(overlay, (0, 0))
@@ -232,7 +232,7 @@ def draw_note_reading(screen, font, small_font, text_lines):
 # This entire function is for defining the hangman and the different parts of it
 # It took quite a lot to program but I thought it was a good idea to develop this within the game
 def draw_hangman_figure(screen, x, y, wrong_guesses):
-    """Draws the hangman scaffold and body parts based on wrong guesses"""
+    # This draws the hangman according to the different answers that the player gives 
     color = COLOR_BONE
     pygame.draw.line(screen, COLOR_BLOOD, (x, y + 130), (x + 70, y + 130), 3)
     pygame.draw.line(screen, color, (x + 15, y + 130), (x + 15, y), 3)
@@ -254,7 +254,7 @@ def draw_hangman_figure(screen, x, y, wrong_guesses):
 
 
 def draw_hangman_popup(screen, puzzle, font, small_font, big_font):
-    """Draws the hangman minigame interface"""
+    # This draws the interface of the minigame 
     overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
     overlay.fill((*COLOR_FOG, 230))
     screen.blit(overlay, (0, 0))
@@ -298,7 +298,7 @@ def draw_hangman_popup(screen, puzzle, font, small_font, big_font):
 
 # Added the weights minigame which is required for the good ending. The function is basically that the player has to press ESCAPE in order to obtain the note
 def draw_weights_minigame(screen, progress, font, small_font):
-    """Draws the button mashing progress bar modal for lifting weights"""
+    # This draws the smashing screen where the player has to press SPACE couple of times 
     overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
     overlay.fill((*COLOR_FOG, 220))
     screen.blit(overlay, (0, 0))
@@ -414,7 +414,7 @@ def main():
     small_font = pygame.font.SysFont(None, 18)
     big_font = pygame.font.SysFont(None, 34)
 
-    # Load Background image
+    # Load background image
     yard_bg = pygame.image.load("yard_background.png").convert()
     yard_bg = pygame.transform.scale(yard_bg, (WINDOW_WIDTH, WINDOW_HEIGHT))
 
@@ -438,7 +438,7 @@ def main():
     ]
 
     puzzle = HangmanPuzzle(WORD_TO_GUESS)
-    # States: "EXPLORE", "DIALOGUE", "PUZZLE", "WEIGHTS_GAME", "INVENTORY", "READ_NOTE", "MONOLOGUE"
+    
     game_state = "EXPLORE"
 
     # Digging state variables
