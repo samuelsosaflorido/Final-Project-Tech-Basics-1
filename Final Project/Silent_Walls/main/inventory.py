@@ -1,3 +1,5 @@
+# by Samuel Sosa Florido
+
 # For this part I have used this video which I found really useful :) https://www.youtube.com/watch?v=1q_0l71Ln7I
 # Nevertheless did not implement most of the stuff because it is mainly for adventure games in which the inventory plays a huge role, like for selling items even
 # I used also the design of the yard for this but we can change it

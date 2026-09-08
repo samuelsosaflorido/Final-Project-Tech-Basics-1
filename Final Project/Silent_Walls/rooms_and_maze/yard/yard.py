@@ -1,3 +1,5 @@
+# by Samuel Sosa Florido
+
 # So this is a demo of the yard I have made some dialogue and options and used the pixel art image that we showed during the presentation as a test
 # I added some rudimentary Inventory option that can be activated with the TAB, similar to other games such as Resident Evil, The Elder Scrolls, Fallout or Silent Hill 2 
 # We might need to change this when the inventory file is completed 

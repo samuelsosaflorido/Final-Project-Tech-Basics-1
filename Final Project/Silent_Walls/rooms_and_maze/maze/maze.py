@@ -1,3 +1,5 @@
+# by Samuel Sosa Florido and Karoline Fischer
+
 # Okay there are a bunch of problems with this code in terms of the movement gthat I had to fix but also there's more stuff to add
 # Like the game interprets the hearts and the HP bar as part of the environment, so maybe we might need to define specific class for this
 # I had to use Claude even though I was writing the code on my own but I also added comments so for you is also more easy to follow. 

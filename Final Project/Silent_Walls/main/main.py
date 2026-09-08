@@ -1,3 +1,5 @@
+# by Samuel Sosa Florido
+
 # So this is basically the main file for the main screen
 # I have used the design from the presentation as the main screen file so I added the constants, rendered the image and added some text box welcoming the player and adding the function to either continue playing or exit the game
 # Maybe we might need to also import the other sections of the game in this main file but we can do that later
