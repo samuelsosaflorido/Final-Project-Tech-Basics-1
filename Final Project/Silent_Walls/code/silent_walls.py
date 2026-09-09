@@ -1,12 +1,32 @@
-# by Samuel Sosa Florido
+# mainly by Katharina Noske (other coding parts form Samuel Sosa Florido or Karoline Fischer will be pointed out)
 
-# For this part I have used this video which I found really useful :) https://www.youtube.com/watch?v=1q_0l71Ln7I
-# Nevertheless did not implement most of the stuff because it is mainly for adventure games in which the inventory plays a huge role, like for selling items even
-# I used also the design of the yard for this but we can change it
+# unfortunately we started with coding the game separately in different files
+# so we faced the issue to combine it into ONE compleet game
+# so we did needed to reorganization the code (the file structure and the files themselves)
+# so this is the attempt to put it all together in one game without bugs (with a main structure and then the separated rooms)
 
 import pygame
+pygame.init()
 
-# You can add more items here :) 
+from sys import *
+
+# basic pygame-setup to run the game
+screen = pygame.display.set_mode((980, 480))
+clock = pygame.time.Clock()
+# make the window "pretty" (Name of the window)
+pygame.display.set_caption("silent walls")
+background = "gray"
+ground_color = "black"
+
+ground = pygame.Surface((980, 250))
+ground.fill(ground_color)
+
+# your character
+your_character = pygame.image.load('pixil-frame-0(5).png').convert_alpha()
+your_character_rect = your_character.get_rect(midbottom = (400, 400))
+
+# the Inventory (by Samuel Sosa Florido):
+# if more items needed => add them here
 ALL_ITEMS = [
     "Key Fragment 1",
     "Key Fragment 2",
@@ -30,7 +50,7 @@ class Inventory:
 
         # Color palette for the inventory
         self.color_bg = (15, 10, 15)
-        self.color_border = (140, 30, 30)      # COLOR_BLOOD
+        self.color_border = (140, 30, 30)  # COLOR_BLOOD
         self.color_bone = (230, 225, 210)
         self.color_slot = (25, 20, 28)
         self.color_selected = (200, 180, 120)
@@ -104,7 +124,7 @@ class Inventory:
         start_x, start_y = panel_x + 25, panel_y + 50
 
         # This is a conditional loop to create 8 slots for the inventory
-        # Each slot has its corresponding coordinate for it to make sense 
+        # Each slot has its corresponding coordinate for it to make sense
         for i in range(8):
             col, row = i % 4, i // 4
             sx = start_x + col * (slot_size + gap)
@@ -140,7 +160,35 @@ class Inventory:
                 screen.blit(act_surf, (desc_x + 12, desc_y + desc_h - 22))
         else:
             empty_surf = small_font.render("Empty Slot", True, (100, 95, 95))
-            screen.blit(empty_surf, (desc_x + 12, desc_y + 12))  # This is when the slot is completely empty, so it shows it with the gray color
+            screen.blit(empty_surf, (desc_x + 12,
+                                     desc_y + 12))  # This is when the slot is completely empty, so it shows it with the gray color
 
         controls_surf = small_font.render("[ARROWS] Select Slot | [TAB / ESC] Close", True, (140, 135, 130))
         screen.blit(controls_surf, (panel_x + 20, panel_y + panel_h - 22))
+
+    # Inventorty (by Samuel Sosa Florido) end
+
+# back to the basic pygame-setup to run the game
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            exit()
+
+    # basic background color (to draw over - blanc canvas to start with / reset the background at every frame)
+    screen.fill((background))
+
+    # game together
+    screen.blit(ground, (0, 230))
+    screen.blit(your_character, your_character_rect)
+
+    pygame.display.update()
+
+    # limits FPS to 60
+    clock.tick(60)
+
+    # flip() the display to put my work on screen
+    pygame.display.flip()
+
+    # limits FPS to 60
+    clock.tick(60)

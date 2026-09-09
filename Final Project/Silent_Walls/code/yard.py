@@ -9,11 +9,9 @@
 # But the overall idea is here I have added comments on the different sections 
 # It has been challengng to write the code and I also used some help with Gemini and also some tutorials I hope everything looks clean and understandable :)
 
-
-
 import pygame
 import math
-from inventory import Inventory
+from silent_walls import *
 
 # Configuration
 # Here I have defined the main variables as well as the requisites for the puzzle and the width and height for the screens

@@ -11,6 +11,7 @@
 import pygame
 import sys
 
+
 WINDOW_WIDTH, WINDOW_HEIGHT = 800, 600
 FPS = 60
 
