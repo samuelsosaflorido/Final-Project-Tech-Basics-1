@@ -17,14 +17,24 @@ clock = pygame.time.Clock()
 # make the window "pretty" (Name of the window)
 pygame.display.set_caption("silent walls")
 background = "gray"
-ground_color = "black"
+base_color = "black"
 
-ground = pygame.Surface((980, 250))
-ground.fill(ground_color)
+
+base = pygame.Surface((980, 250))
+base.fill(base_color)
 
 # your character
-your_character = pygame.image.load("pixil-frame-0(4).png").convert_alpha()
-your_character_rect = your_character.get_rect(topleft = (90, 30))
+
+your_character = pygame.image.load("pixil-frame-0(5).png").convert_alpha()
+
+# define a new width and height for your_character
+new_width = 50
+new_height = 50
+
+# update the new scaled image of your_character
+your_character = pygame.transform.scale(your_character, (new_width, new_height))
+your_character_rect = your_character.get_rect(topleft = (500, 300))
+
 
 
 # the Inventory (by Samuel Sosa Florido):
@@ -181,7 +191,7 @@ while True:
     screen.fill((background))
 
     # put the separated game sections together
-    screen.blit(ground, (0, 230))
+    screen.blit(base, (0, 230))
     screen.blit(your_character, your_character_rect)
 
 
