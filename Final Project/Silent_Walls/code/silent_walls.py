@@ -6,11 +6,12 @@
 # so this is the attempt to put it all together in one game without bugs (with a main structure and then the separated rooms)
 
 import pygame
-pygame.init()
-
 from sys import *
 
+from scipy._lib.pyprima.cobyla import update
+
 # basic pygame-setup to run the game
+pygame.init()
 screen = pygame.display.set_mode((980, 480))
 clock = pygame.time.Clock()
 # make the window "pretty" (Name of the window)
@@ -22,8 +23,9 @@ ground = pygame.Surface((980, 250))
 ground.fill(ground_color)
 
 # your character
-your_character = pygame.image.load('pixil-frame-0(5).png').convert_alpha()
-your_character_rect = your_character.get_rect(midbottom = (400, 400))
+your_character = pygame.image.load("pixil-frame-0(4).png").convert_alpha()
+your_character_rect = your_character.get_rect(topleft = (90, 30))
+
 
 # the Inventory (by Samuel Sosa Florido):
 # if more items needed => add them here
@@ -178,17 +180,13 @@ while True:
     # basic background color (to draw over - blanc canvas to start with / reset the background at every frame)
     screen.fill((background))
 
-    # game together
+    # put the separated game sections together
     screen.blit(ground, (0, 230))
     screen.blit(your_character, your_character_rect)
 
+
+
     pygame.display.update()
-
-    # limits FPS to 60
-    clock.tick(60)
-
-    # flip() the display to put my work on screen
-    pygame.display.flip()
 
     # limits FPS to 60
     clock.tick(60)
