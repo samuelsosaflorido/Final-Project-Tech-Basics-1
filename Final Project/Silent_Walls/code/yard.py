@@ -11,7 +11,8 @@
 
 import pygame
 import math
-from silent_walls import *
+from silent_walls import Inventory 
+
 
 # Configuration
 # Here I have defined the main variables as well as the requisites for the puzzle and the width and height for the screens
