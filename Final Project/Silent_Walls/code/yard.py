@@ -12,6 +12,7 @@
 import pygame
 import math
 from silent_walls import Inventory 
+from silent_walls import your_character 
 
 
 # Configuration
