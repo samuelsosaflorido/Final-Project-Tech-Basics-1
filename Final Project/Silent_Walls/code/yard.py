@@ -37,7 +37,6 @@ COLOR_SICKLY = (150, 180, 140)
 COLOR_BONE = (210, 205, 190)
 COLOR_FOG = (40, 10, 15)
 COLOR_GOLD = (212, 175, 55)
-COLOR_STICKMAN = (235, 230, 220) # oh yeah, I did this just to test it out lol
 COLOR_DIRT = (60, 35, 25)
 COLOR_NOTE = (230, 220, 190)
 
@@ -268,66 +267,6 @@ def draw_weights_minigame(screen, progress, font, small_font):
 
     pygame.draw.rect(screen, COLOR_BONE, (bar_x, bar_y, bar_w, bar_h), 2, border_radius=4)
 
-
-# Defining the class of the main character and the ghost
-
-class StickmanPlayer:
-    def __init__(self, x, y):
-        self.x = float(x)
-        self.y = float(y)
-        self.speed = 2.5
-        self.facing = 1
-        self.anim_timer = 0
-        self.is_moving = False
-
-    def move(self, dx, dy, obstacles):
-        self.is_moving = (dx != 0 or dy != 0)
-        if dx != 0:
-            self.facing = 1 if dx > 0 else -1
-
-        new_x = self.x + dx * self.speed
-        test_rect_x = pygame.Rect(int(new_x - 8), int(self.y - 6), 16, 8)
-        if 20 <= new_x <= WINDOW_WIDTH - 20 and not any(test_rect_x.colliderect(obs) for obs in obstacles):
-            self.x = new_x
-
-        new_y = self.y + dy * self.speed
-        test_rect_y = pygame.Rect(int(self.x - 8), int(new_y - 6), 16, 8)
-        if 265 <= new_y <= 325 and not any(test_rect_y.colliderect(obs) for obs in obstacles):
-            self.y = new_y
-
-        if self.is_moving:
-            self.anim_timer += 0.2
-
-    def draw(self, screen):
-        cx, cy = int(self.x), int(self.y)
-        color = COLOR_STICKMAN
-        line_w = 2
-
-        # This is to draw the head and the eye of the character
-        head_pos = (cx, cy - 36)
-        pygame.draw.circle(screen, color, head_pos, 6, line_w)
-        pygame.draw.circle(screen, (200, 50, 50), (head_pos[0] + (2 * self.facing), head_pos[1]), 1)
-
-        # This is for the spine
-        neck_pos = (cx, cy - 30)
-        hip_pos = (cx, cy - 14)
-        pygame.draw.line(screen, color, neck_pos, hip_pos, line_w)
-
-        # Decided to add some timers and animations
-        walk_swing = math.sin(self.anim_timer) * 5 if self.is_moving else 0
-
-        # This is to define the structure of the torso including the shoulders and both hands/arms
-        shoulder_pos = (cx, cy - 26)
-        left_hand = (cx - int(7 * self.facing) - int(walk_swing), cy - 16)
-        right_hand = (cx + int(7 * self.facing) + int(walk_swing), cy - 16)
-        pygame.draw.line(screen, color, shoulder_pos, left_hand, line_w)
-        pygame.draw.line(screen, color, shoulder_pos, right_hand, line_w)
-
-        # I drew the legs
-        left_foot = (cx - 5 - int(walk_swing), cy)
-        right_foot = (cx + 5 + int(walk_swing), cy)
-        pygame.draw.line(screen, color, hip_pos, left_foot, line_w)
-        pygame.draw.line(screen, color, hip_pos, right_foot, line_w)
 
 # The GhostNPC is basically the skeleton so I am gonna change this because it would be cool to have a better design of it
 class GhostNPC:
