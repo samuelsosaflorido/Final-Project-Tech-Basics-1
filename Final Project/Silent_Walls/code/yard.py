@@ -24,6 +24,24 @@ FPS = 60
 # Screen configuration 
 screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
+# your characyer
+your_character = pygame.image.load("pixil-frame-0(5).png").convert_alpha()
+
+# define a new width and height for your_character 
+new_width = 70 
+new_height = 80 
+
+# update the new scaled image of your_character
+your_character = pygame.transform.scale(your_character, (new_width, new_height))
+your_character_rect = your_character.get_rect(topleft = (500, 300)) 
+
+# basic background color (to draw over - blanc canvas to start with / reset the background at every frame)
+screen.fill((background))
+
+# put the separated game sections together
+screen.blit(base, (0, 230))
+screen.blit(your_character, your_character_rect)
+
 # Entities within the game where player can interact with 
 npc_image = pygame.image.load("skeleton_ghost_npc_yard.png").convert_alpha()
 background_image = pygame.image.load("yard_background.png").convert_alpha()
