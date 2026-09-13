@@ -11,8 +11,7 @@
 
 import pygame
 import math
-from silent_walls import Inventory 
-from silent_walls import your_character 
+from silent_walls import *
 
 
 # Configuration
@@ -21,6 +20,24 @@ WINDOW_WIDTH, WINDOW_HEIGHT = 800, 338
 WORD_TO_GUESS = "AWAKENING"
 MAX_WRONG_GUESSES = 6
 FPS = 60
+
+# Screen configuration 
+screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+
+# Entities within the game where player can interact with 
+npc_image = pygame.image.load("skeleton_ghost_npc_yard.png").convert_alpha()
+background_image = pygame.image.load("yard_background.png").convert_alpha()
+weights_image = pygame.image.load("weights_yard.png").convert_alpha()
+dummbbell_image = pygame.image.load("dumbbell_yard.png").convert_alpha()
+gallowspole_image = pygame.image.load("gallows_pole_yard.png").convert_alpha()
+
+screen.blit(background_image, (0, 0)) 
+screen.blit(gallowspole_image, (650, 180))
+screen.blit(weights_image, (230, 200))
+screen.blit(dumbbell_image, (100, 220))
+screen.blt(npc_image, (ghost.rect.x, ghost.rect.y)) 
+            
+
 
 # Coordinates given by the ghost once solved (Bad ending route)
 # We might need to change these coordinates and visualize the map. The coordinates are nearby the gallows pole, so I hope this makes any sense
@@ -41,6 +58,8 @@ COLOR_DIRT = (60, 35, 25)
 COLOR_NOTE = (230, 220, 190)
 
 pygame.init()
+
+
 
 
 # Hangman Puzzle for the Ghost ending (Bad Ending)
