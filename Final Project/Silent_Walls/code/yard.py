@@ -11,7 +11,7 @@
 
 import pygame
 import math
-from silent_walls import *
+from silent_walls import silent_walls
 
 
 # Configuration
@@ -27,7 +27,7 @@ screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 # your characyer
 your_character = pygame.image.load("pixil-frame-0(5).png").convert_alpha()
 
-# define a new width and height for your_character 
+# define a new width and height 
 new_width = 70 
 new_height = 80 
 
@@ -50,9 +50,9 @@ dummbbell_image = pygame.image.load("dumbbell_yard.png").convert_alpha()
 gallowspole_image = pygame.image.load("gallows_pole_yard.png").convert_alpha()
 
 screen.blit(background_image, (0, 0)) 
-screen.blit(gallowspole_image, (650, 180))
-screen.blit(weights_image, (230, 200))
-screen.blit(dumbbell_image, (100, 220))
+screen.blit(gallowspole_image, (590, 95))
+screen.blit(weights_image, (175, 180))
+screen.blit(dumbbell_image, (70, 225))
 screen.blt(npc_image, (ghost.rect.x, ghost.rect.y)) 
             
 
