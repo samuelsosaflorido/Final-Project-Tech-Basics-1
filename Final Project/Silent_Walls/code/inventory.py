@@ -2,17 +2,16 @@
 
 # if more items needed => add them here
 ALL_ITEMS = [
-    "Key Fragment 1",
-    "Key Fragment 2",
-    "Key Fragment 3",
-    "Strange Key",
-    "Medication Fragment 1",
-    "Medication Fragment 2",
-    "Medication Fragment 3",
-    "Medication",
-    "Strange Note 1",
-    "Strange Note 2",
-    "Strange Note 3",
+    "Key (Cell)",
+    "Key (Cafeteria)",
+    "Key (Yard)",
+    "Medication (Cell)",
+    "Medication (Cafeteria)",
+    "Medication (Yard)",
+    "Medication (Full)",
+    "Letter (Cell)",
+    "Letter (Cafeteria)",
+    "Letter (Yard)",
     "Spade"
 ]
 
@@ -60,13 +59,13 @@ class Inventory:
         self.selected_idx = (self.selected_idx + direction) % self.max_slots
 
     def combine(self):
-        meds_frags = ["Medication Fragment 1", "Medication Fragment 2", "Medication Fragment 3"]
+        meds_frags = ["Medication 1", "Medication 2", "Medication 3"]
         if all(frag in self.items for frag in meds_frags):
             for frag in meds_frags:
                 self.items.remove(frag)
             self.items.append("Medication")
 
-        keys = ["Key Fragment 1", "Key Fragment 2", "Key Fragment 3"]
+        keys = ["Key 1", "Key 2", "Key 3"]
         if all(frag in self.items for frag in keys):
             for frag in keys:
                 self.items.remove(frag)
@@ -129,7 +128,7 @@ class Inventory:
             item_title = font.render(item_name, True, self.color_selected)
             screen.blit(item_title, (desc_x + 12, desc_y + 10))
 
-            if "Strange Note" in item_name:
+            if "Letter" in item_name:
                 act_surf = small_font.render("[Press E to read Note]", True, (120, 200, 140))
                 screen.blit(act_surf, (desc_x + 12, desc_y + desc_h - 22))
         else:
