@@ -12,9 +12,10 @@ from sys import *
 # from inventory import *
 # from maze import *
 # from hospital import *
-# from cafeteria import *
+from cafeteria import *
 # from yard import *
-# from cell import *
+from cell import *
+from character import Character
 # from scipy._lib.pyprima.cobyla import update
 
 import os
@@ -41,77 +42,7 @@ base.fill(base_color)
 
 # your character
 # collision by Karo Fischer 
-class Character():
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.image = pygame.image.load("pixil-frame-0(5).png").convert_alpha()
-        self.transformed_image = pygame.transform.scale(self.image, (100, 100))
-        self.rect = self.transformed_image.get_rect(topleft=(x, y))
-        self.hitbox = pygame.Rect(x, y + 50, 80, 20) 
 
-    def draw(self, screen):
-        screen.blit(self.transformed_image, self.rect)
-        pygame.draw.rect(screen, "red", self.hitbox, 2)
-
-    def update_hitbox(self):
-        self.hitbox.x = self.rect.x + 25
-        self.hitbox.y = self.rect.y + 80
-
-    def move(self, objects):
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_a]:
-            self.rect.x -= 5
-            self.update_hitbox()
-            if self.check_collision(objects):
-                self.rect.x +=5
-                self.update_hitbox()
-
-        if keys[pygame.K_d]:
-            self.rect.x += 5
-            self.update_hitbox()
-            if self.check_collision(objects):
-                self.rect.x -=5
-                self.update_hitbox()
-
-        if keys[pygame.K_w]:
-            self.rect.y -= 5
-            self.update_hitbox()
-            if self.check_collision(objects):
-                self.rect.y +=5
-                self.update_hitbox()
-
-        if keys[pygame.K_s]:
-            self.rect.y += 5
-            self.update_hitbox()
-            if self.check_collision(objects):
-                self.rect.y -=5
-                self.update_hitbox()
-
-    def check_collision(self, objects):
-        for obj in objects:
-            if self.hitbox.colliderect(obj.rect):
-                return True
-        return False
-
-    def check_walls(self):
-        if self.rect.left < 0:
-            self.hitbox.left = 0
-            self.rect.left = 0
-        if self.rect.right > 980:
-            self.hitbox.left = 980
-            self.rect.right = 980
-        if self.rect.top < 200:
-            self.hitbox.left = 200
-            self.rect.top = 200
-        if self.rect.bottom > 480:
-            self.hitbox.left = 480
-            self.rect.bottom = 480
-
-    def update(self, objects):
-        self.move(objects)
-        #self.update_hitbox()
-        self.check_walls()
 
 
 # I got help from AI for the main Game Loop here
@@ -216,6 +147,14 @@ class Game:
         self.character.move()
 
         if self.current_state == "maze":
+            objects = self.maze.objects if hasattr(self.maze, 'objects') else []
+        else:
+            current_room = self.rooms[self.current_state]
+            objects = current_room.objects if hasattr(current_room, 'objects') else []
+
+        self.character.update(objects)
+
+        if self.current_state == "maze":
             result = self.maze.check_exits(self.character)
             if result:
                 self.enter_room(result)
@@ -249,25 +188,33 @@ while True:
             pygame.quit()
             exit()
 
-    character.move()
     game.update()
+    screen.fill((background))
+    screen.blit(base, (0, 230))
     game.draw(screen)
 
+    pygame.display.update()
+    # limits FPS to 60
+    clock.tick(60)
+
+    #character.draw(screen)
+    
+
+
+    #character.move(objects)
         #if your_character_rect.colliderect(chair.rect) and chair.rect.collidepoint(event.pos) and event.type == pygame.mouse.get_pressed():
            #print('Hello')
 
     # basic background color (to draw over - blanc canvas to start with / reset the background at every frame)
-    screen.fill((background))
+    
 
     # put the separated game sections together
-    screen.blit(base, (0, 230))
-    character.draw(screen)
+    
 
 
 
     #cafeteria.update()
-    character.update()
-    pygame.display.update()
+    #character.update()
+    
 
-    # limits FPS to 60
-    clock.tick(60)
+    

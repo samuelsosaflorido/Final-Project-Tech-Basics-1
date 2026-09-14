@@ -4,6 +4,8 @@ import random
 import os
 import sys
 
+from character import Character
+
 # Setzt den Pfad immer relativ zur .py Datei
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -27,12 +29,12 @@ class Cell():
         self.table_x = 980
         self.table_y = 480
 
-        self.toilet = Toilet(0, 0)
-        self.chest = Chest(0, 0)
-        self.shackles = Shackles(0, 0)
-        self.key = Key(0,0)
-        self.table = Table(0, 0)
-        self.bed = Bed(0, 0)
+        self.toilet = Toilet(550, 220)
+        self.chest = Chest(90, 260)
+        self.shackles = Shackles(460, 80)
+        self.key = Key(900,290)
+        self.table = Table(290, 200)
+        self.bed = Bed(680, 190)
 
         #list of objects in cell, so that not every object has to be called upon itself
         self.objects = [self.table, self.toilet, self.chest, self.shackles, self.key, self.bed]
@@ -59,11 +61,11 @@ class Table():
         self.x = x
         self.y = y
         self.image = pygame.image.load ("cell_table.png").convert_alpha()
-        self.image = pygame.transform.scale(self.image, (50, 50))
         self.rect = self.image.get_rect(topleft=(x, y))
     
     def draw(self, screen):
         screen.blit(self.image, self.rect)
+        pygame.draw.rect(screen, "red", self.rect, 2)
     
     def update(self):
         pass 
@@ -77,6 +79,7 @@ class Bed():
     
     def draw(self, screen):
         screen.blit(self.image, self.rect)
+        pygame.draw.rect(screen, "red", self.rect, 2)
     
     def update(self):
         pass
@@ -90,6 +93,7 @@ class Toilet():
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
+        pygame.draw.rect(screen, "red", self.rect, 2)
 
     def update(self):
         pass 
@@ -103,6 +107,7 @@ class Key():
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
+        pygame.draw.rect(screen, "red", self.rect, 2)
 
     def update(self):
         pass 
@@ -116,84 +121,32 @@ class Chest():
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
+        pygame.draw.rect(screen, "red", self.rect, 2)
 
     def update(self):
         pass 
 
 class Shackles():
-    #def __init__(self, x, y):
-        #self.x = x
-        #self.y = y
-        #self.image = pygame.image.load ("cell_shackles.png").convert_alpha()
-        #self.rect = self.image.get_rect(topleft=(x, y))
-
-    #def draw(self, screen):
-        #screen.blit(self.image, self.rect)
-
-    #def update(self):
-        pass 
-
-
-
-class Character():
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.image = pygame.image.load("pixil-frame-0(5).png").convert_alpha()
-        self.transformed_image = pygame.transform.scale(self.image, (100, 100))
-        self.rect = self.transformed_image.get_rect(topleft=(x, y))
+        self.image = pygame.image.load ("cell_shackles.png").convert_alpha()
+        self.rect = self.image.get_rect(topleft=(x, y))
 
     def draw(self, screen):
-        screen.blit(self.transformed_image, self.rect)
+        screen.blit(self.image, self.rect)
+        pygame.draw.rect(screen, "red", self.rect, 2)
 
-    def move(self, objects):
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_a]:
-            self.rect.x -= 5
-            if self.check_collision(objects):
-                self.rect.x +=5
+    def update(self):
+        pass 
 
-        if keys[pygame.K_d]:
-            self.rect.x += 5
-            if self.check_collision(objects):
-                            self.rect.x -=5
-
-        if keys[pygame.K_w]:
-            self.rect.y -= 5
-            if self.check_collision(objects):
-                            self.rect.x +=5
-
-        if keys[pygame.K_s]:
-            self.rect.y += 5
-            if self.check_collision(objects):
-                            self.rect.x -=5
-
-    def check_collision(self, objects):
-        for obj in objects:
-            if self.rect.colliderect(obj.rect):
-                return True
-        return False
-
-    def check_walls(self):
-        if self.rect.left < 0:
-            self.rect.left = 0
-        if self.rect.right > 980:
-            self.rect.right = 980
-        if self.rect.top < 0:
-            self.rect.top = 0
-        if self.rect.bottom < 480:
-            self.rect.bottom = 480
-
-    def update(self, objects):
-        self.move(objects)
-        self.check_walls()
 
 
 pygame.init()
 screen = pygame.display.set_mode ((980, 480))
 clock = pygame.time.Clock()
 
-character = Character(100, 100)
+character = Character(300, 300)
 cell = Cell(character)
 
 running = True
