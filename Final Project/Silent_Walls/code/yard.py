@@ -152,12 +152,12 @@ class Yard:
 
         # Background layers
         self.bg = self._load_canvas_layer("yard_background.png", alpha=False)
-        self.weights_layer = self._load_canvas_layer("weights_yard.png", alpha=True)
-        self.dumbbell_layer = self._load_canvas_layer("dumbbells_yard.png", alpha=True)
-        self.gallows_layer = self._load_canvas_layer("gallows_pole_yard.png", alpha=True)
+        self.weights_layer = self._load_canvas_layer("yard_weights.png", alpha=True)
+        self.dumbbell_layer = self._load_canvas_layer("yard_dumbbells.png", alpha=True)
+        self.gallows_layer = self._load_canvas_layer("yard_gallows_pole.png", alpha=True)
 
         # Skeleton ghost NPC - dimensions match original canvas drawing exactly, shifted forward
-        raw_ghost_path = os.path.join(self.base_dir, "skeleton_ghost_npc_yard.png")
+        raw_ghost_path = os.path.join(self.base_dir, "yard_skeleton_ghost_npc.png")
         if os.path.exists(raw_ghost_path):
             raw_ghost = pygame.image.load(raw_ghost_path).convert_alpha()
             ghost_img = pygame.transform.scale(raw_ghost, (88, 108))
@@ -189,7 +189,7 @@ class Yard:
             pygame.Rect(675, 350, 205, 50),   # Gallows legs touching floor
         ]
 
-        # Floor boundary: Character feet cannot walk into the wall above this line. 
+        # Floor boundary: Character feet cannot walk into the wall above this line
         self.wall_limit_y = 370
 
         # Item & interaction states matching standard item names
@@ -501,7 +501,6 @@ yard = Yard(player)
 
 running = True
 while running:
-    # Safely check if the imported inventory is currently toggled open. For the inventory to be open and to add the TAB key toggles I had to use Gemini to understand and to get feedback to implement this within the code
     inventory_open = getattr(inventory, "is_open", False)
 
     for event in pygame.event.get():
@@ -521,7 +520,7 @@ while running:
                     yard.handle_key(event)
 
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            # If inventory is active, route mouse clicks to inventory
+            # Route mouse clicks to inventory if open, else to yard exploration
             if inventory_open:
                 if hasattr(inventory, "handle_click"):
                     inventory.handle_click(event.pos)
