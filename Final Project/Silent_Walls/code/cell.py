@@ -1,6 +1,12 @@
 import pygame
 import random
 
+import os
+import sys
+
+# Setzt den Pfad immer relativ zur .py Datei
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 #class Object():
     #def __init__(self, x, y, image):
         #self.x = x
@@ -19,7 +25,7 @@ class Table():
     def __init__(self, x, y, image):
         self.x = x
         self.y = y
-        self.image = image
+        self.image = pygame.image.load ("")
         self.rect = self.image.get_rect(topleft=(x, y))
     
     def draw(self, screen):

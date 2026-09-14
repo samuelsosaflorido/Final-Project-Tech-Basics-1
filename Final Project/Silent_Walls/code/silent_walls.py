@@ -17,6 +17,12 @@ from sys import *
 # from cell import *
 # from scipy._lib.pyprima.cobyla import update
 
+import os
+import sys
+
+# Setzt den Pfad immer relativ zur .py Datei
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 # basic pygame-setup to run the game
 pygame.init()
 screen = pygame.display.set_mode((980, 480))
@@ -30,6 +36,8 @@ base_color = "black"
 
 base = pygame.Surface((980, 250))
 base.fill(base_color)
+
+#image = "pixil-frame-0(5).png"
 
 # your character
 class Character:
