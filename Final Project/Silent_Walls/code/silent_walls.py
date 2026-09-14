@@ -72,7 +72,7 @@ class Character:
 
 # I got help from AI for the main Game Loop here
 
-# Basic Clas for all the Rooms
+# Basic Class for all the Rooms
 class Room:
     def __init__(self, name):
         self.name = name
