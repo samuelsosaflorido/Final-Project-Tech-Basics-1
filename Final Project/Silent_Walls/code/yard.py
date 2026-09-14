@@ -8,8 +8,8 @@
 import math
 import os
 import pygame
-import inventory
-from silent_walls import *
+from silent_walls import collision, inventory 
+
 
 # Basic pygame setup
 pygame.init()
