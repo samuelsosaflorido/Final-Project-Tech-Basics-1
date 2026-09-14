@@ -1,648 +1,548 @@
-# by Samuel Sosa Florido
+# by Samuel Domingo Sosa Florido
 
 # So this is a demo of the yard I have made some dialogue and options and used the pixel art image that we showed during the presentation as a test
-# I added some rudimentary Inventory option that can be activated with the TAB, similar to other games such as Resident Evil, The Elder Scrolls, Fallout or Silent Hill 2 
-# We might need to change this when the inventory file is completed 
-# I have added a stickman only just to try out how it will look like with the animations. Looks a bit wonky lol but fun
-# I have implemented within the code the different puzzles, the ghost one, the key fragment and the medication fragment so I hope it works right
-# We might need to change stuff since I am still not convinced with the visuals and maybe I might need to improve this a little bit more 
-# But the overall idea is here I have added comments on the different sections 
-# It has been challengng to write the code and I also used some help with Gemini and also some tutorials I hope everything looks clean and understandable :)
+# Okay I have changed a lot in relation to how the code was earlier. I had to use the videos cited in the documentation and also some Gemini help to get some feedback
+# It has been challenging in terms to understanding everything, writing everything and trying to comprehend the logic behind it
+# I also tried to make it more clean this time as lat time was extremely chaotic and could not be well read or understood in general
 
-import pygame
 import math
+import os
+import pygame
+import inventory
 from silent_walls import *
 
-# Configuration
-# Here I have defined the main variables as well as the requisites for the puzzle and the width and height for the screens
-WINDOW_WIDTH, WINDOW_HEIGHT = 800, 338
-WORD_TO_GUESS = "AWAKENING"
-MAX_WRONG_GUESSES = 6
-FPS = 60
-
-# Screen configuration 
-screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-
-# your characyer
-your_character = pygame.image.load("pixil-frame-0(5).png").convert_alpha()
-
-# define a new width and height 
-new_width = 70 
-new_height = 80 
-
-# update the new scaled image of your_character
-your_character = pygame.transform.scale(your_character, (new_width, new_height))
-your_character_rect = your_character.get_rect(topleft = (500, 300)) 
-
-# basic background color (to draw over - blanc canvas to start with / reset the background at every frame)
-screen.fill((background))
-
-# put the separated game sections together
-screen.blit(base, (0, 230))
-screen.blit(your_character, your_character_rect)
-
-# Entities within the game where player can interact with 
-npc_image = pygame.image.load("skeleton_ghost_npc_yard.png").convert_alpha()
-background_image = pygame.image.load("yard_background.png").convert_alpha()
-weights_image = pygame.image.load("weights_yard.png").convert_alpha()
-dummbbell_image = pygame.image.load("dumbbell_yard.png").convert_alpha()
-gallowspole_image = pygame.image.load("gallows_pole_yard.png").convert_alpha()
-
-screen.blit(background_image, (0, 0)) 
-screen.blit(gallowspole_image, (590, 95))
-screen.blit(weights_image, (175, 180))
-screen.blit(dumbbell_image, (70, 225))
-screen.blt(npc_image, (ghost.rect.x, ghost.rect.y)) 
-            
-
-
-# Coordinates given by the ghost once solved (Bad ending route)
-# We might need to change these coordinates and visualize the map. The coordinates are nearby the gallows pole, so I hope this makes any sense
-DIG_TARGET_X = 680
-DIG_TARGET_Y = 295
-MEDICATION_COORDINATES = f"X: {DIG_TARGET_X}, Y: {DIG_TARGET_Y}"
-
-# Color Palette
-# I have defined the main color palette for the screen for the dialogues. This is just something temporary as we might need to change this to make it more visually appealing
-COLOR_VOID = (6, 4, 8)
-COLOR_BLOOD = (140, 15, 20)
-COLOR_BLOOD_BRIGHT = (200, 30, 35)
-COLOR_SICKLY = (150, 180, 140)
-COLOR_BONE = (210, 205, 190)
-COLOR_FOG = (40, 10, 15)
-COLOR_GOLD = (212, 175, 55)
-COLOR_DIRT = (60, 35, 25)
-COLOR_NOTE = (230, 220, 190)
-
+# Basic pygame setup
 pygame.init()
+screen = pygame.display.set_mode((980, 480))
+clock = pygame.time.Clock()
+
+WINDOW_WIDTH = 980
+WINDOW_HEIGHT = 480
+WORD_TO_GUESS = "AWAKENING"
+DIG_TARGET_X = 680
+DIG_TARGET_Y = 370
 
 
+# Base class for all interactable objects in the scene
+class Object:
+    def __init__(self, x, y, image, name="object"):
+        self.x = x
+        self.y = y
+        self.name = name
+        self.image = image
+        self.rect = self.image.get_rect(topleft=(x, y))
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+    def interact(self, yard):
+        pass
 
 
-# Hangman Puzzle for the Ghost ending (Bad Ending)
-# Here I defined the class for the Hangman puzzle and also made different options for the game to work
-# This section basically handles whether player succeeds in solving the word game or not, with the corresponding functions
+# Subclasses for yard objects
+class Weights(Object):
+    def interact(self, yard):
+        yard.show_note = True
+        yard.has_letter_yard = True
+        yard.feedback_message = "You found 'Letter (Yard)'. It is covered in blood."
+        yard.feedback_timer = 150
 
+
+class Dumbbells(Object):
+    def interact(self, yard):
+        if not yard.found_key_yard:
+            yard.found_key_yard = True
+            yard.feedback_message = "You have found 'Key (Yard)'. Maybe it can help you escape."
+            yard.feedback_timer = 150
+        else:
+            yard.feedback_message = "You already searched here. Nothing else is under the dumbbells."
+            yard.feedback_timer = 90
+
+
+class Gallows(Object):
+    def interact(self, yard):
+        yard.feedback_message = "This gallows seems odd and shady."
+        yard.feedback_timer = 90
+
+
+# Hangman puzzle mini-game
 class HangmanPuzzle:
-    def __init__(self, word=WORD_TO_GUESS, max_wrong=MAX_WRONG_GUESSES):
-        self.word = word.upper()
-        self.max_wrong = max_wrong
-        self.guessed_letters = set()
+    def __init__(self, word=WORD_TO_GUESS):
+        self.word = word
+        self.guessed_letters = []
         self.wrong_guesses = 0
+        self.max_wrong = 6
         self.solved = False
         self.failed = False
-        self.reward_claimed = False
+        self.is_open = False
+        self.letter_buttons = {}
+
+    def start(self):
+        self.is_open = True
+
+    def close(self):
+        self.is_open = False
 
     def guess(self, letter):
-        letter = letter.upper()
-        if self.solved or self.failed or letter in self.guessed_letters:
+        if letter in self.guessed_letters or self.solved or self.failed:
             return
 
-        self.guessed_letters.add(letter)
-        if letter in self.word:
-            if all(char in self.guessed_letters for char in self.word):
-                self.solved = True
-        else:
+        self.guessed_letters.append(letter)
+        if letter not in self.word:
             self.wrong_guesses += 1
             if self.wrong_guesses >= self.max_wrong:
                 self.failed = True
+        else:
+            if all(c in self.guessed_letters for c in self.word):
+                self.solved = True
 
     def reset(self):
-        self.guessed_letters = set()
+        self.guessed_letters = []
         self.wrong_guesses = 0
         self.solved = False
         self.failed = False
 
-    def display_word(self):
-        return " ".join(letter if letter in self.guessed_letters else "_" for letter in self.word)
+    def draw(self, screen, font, big_font):
+        if not self.is_open:
+            return
+
+        overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 190))
+        screen.blit(overlay, (0, 0))
+
+        box = pygame.Rect(130, 90, 720, 290)
+        pygame.draw.rect(screen, (15, 10, 15), box, border_radius=6)
+        pygame.draw.rect(screen, (140, 20, 25), box, 2, border_radius=6)
+
+        display = " ".join(c if c in self.guessed_letters else "_" for c in self.word)
+        screen.blit(big_font.render(display, True, (120, 180, 130)), (box.x + 40, box.y + 40))
+
+        mistakes = f"Mistakes left: {max(0, self.max_wrong - self.wrong_guesses)}"
+        screen.blit(font.render(mistakes, True, (200, 30, 35)), (box.x + 540, box.y + 45))
+
+        alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        self.letter_buttons.clear()
+        for i, char in enumerate(alphabet):
+            bx = box.x + 35 + (i % 13) * 33
+            by = box.y + 95 + (i // 13) * 33
+            r = pygame.Rect(bx, by, 28, 28)
+            self.letter_buttons[char] = r
+
+            color = (50, 40, 45) if char in self.guessed_letters else (140, 20, 25)
+            pygame.draw.rect(screen, color, r, border_radius=4)
+            pygame.draw.rect(screen, (220, 215, 200), r, 1, border_radius=4)
+            txt = font.render(char, True, (220, 215, 200))
+            screen.blit(txt, (bx + 8, by + 6))
+
+        if self.solved:
+            screen.blit(font.render("Skeleton Ghost of the Yard: 'You are worthy. Take the Spade.'", True, (212, 175, 55)), (box.x + 40, box.y + 195))
+        elif self.failed:
+            screen.blit(font.render("You have failed. Click Retry.", True, (200, 30, 35)), (box.x + 40, box.y + 195))
 
 
-# Drawing functions
-# In this section I had to use the help of Gemini. Nevertheless, I wrote the code by myself trying to understand how to draw the different boxes
-def draw_dialogue_box(screen, font, small_font, dialogue_data):
-    # Renders dialogue text and player branching options
-    overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
-    overlay.fill((*COLOR_FOG, 200))
-    screen.blit(overlay, (0, 0))
+# Yard room controller
+class Yard:
+    def __init__(self, your_character):
+        self.your_character = your_character
+        self.base_dir = os.path.dirname(os.path.abspath(__file__))
 
-    # This defines the main dimensions of the dialogue box
-    box_width, box_height = 700, 125
-    box_x = (WINDOW_WIDTH - box_width) // 2
-    box_y = WINDOW_HEIGHT - box_height - 15
-    box_rect = pygame.Rect(box_x, box_y, box_width, box_height)
+        self.font = pygame.font.SysFont(None, 22)
+        self.small_font = pygame.font.SysFont(None, 18)
+        self.big_font = pygame.font.SysFont(None, 34)
 
-    pygame.draw.rect(screen, COLOR_VOID, box_rect, border_radius=5)
-    pygame.draw.rect(screen, COLOR_BLOOD, box_rect, 2, border_radius=5)
+        # Background layers
+        self.bg = self._load_canvas_layer("yard_background.png", alpha=False)
+        self.weights_layer = self._load_canvas_layer("weights_yard.png", alpha=True)
+        self.dumbbell_layer = self._load_canvas_layer("dumbbells_yard.png", alpha=True)
+        self.gallows_layer = self._load_canvas_layer("gallows_pole_yard.png", alpha=True)
 
-    speaker_surf = font.render(dialogue_data["speaker"], True, COLOR_GOLD)
-    screen.blit(speaker_surf, (box_x + 18, box_y + 10))
+        # Skeleton ghost NPC - dimensions match original canvas drawing exactly, shifted forward
+        raw_ghost_path = os.path.join(self.base_dir, "skeleton_ghost_npc_yard.png")
+        if os.path.exists(raw_ghost_path):
+            raw_ghost = pygame.image.load(raw_ghost_path).convert_alpha()
+            ghost_img = pygame.transform.scale(raw_ghost, (88, 108))
+        else:
+            ghost_img = pygame.Surface((88, 108), pygame.SRCALPHA)
+            ghost_img.fill((180, 50, 60, 200))
 
-    msg_surf = small_font.render(dialogue_data["text"], True, COLOR_BONE) # This basically turns the text with the mentioned color at the end of the code
-    screen.blit(msg_surf, (box_x + 18, box_y + 35))
+        self.ghost = Object(530, 315, ghost_img, name="ghost")
 
-    opt_y = box_y + 62
-    for opt_key, opt_text in dialogue_data["options"].items():
-        opt_color = (120, 200, 140) if "1" in opt_key else COLOR_BLOOD_BRIGHT
-        opt_surf = small_font.render(f"[{opt_key}] {opt_text}", True, opt_color)
-        screen.blit(opt_surf, (box_x + 18, opt_y))
-        opt_y += 22
+        # Interactive yard objects
+        weights_surface = pygame.Surface((80, 80), pygame.SRCALPHA)
+        dumbbells_surface = pygame.Surface((80, 80), pygame.SRCALPHA)
+        gallows_surface = pygame.Surface((160, 100), pygame.SRCALPHA)
 
-# I thought it was a good idea to introduce some monologues within the game
-# Particularly when the main character encounters certain situations or obtains specific object
-# I also added the coordinates of the dialogue box
+        self.weights = Weights(65, 260, weights_surface, name="weights")
+        self.dumbbells = Dumbbells(220, 310, dumbbells_surface, name="dumbbells")
+        self.gallows = Gallows(720, 240, gallows_surface, name="gallows")
 
-def draw_monologue_box(screen, font, small_font, speaker_name, text_line):
-    # This section basically renders the protagonist thinking 
-    overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
-    overlay.fill((*COLOR_FOG, 190))
-    screen.blit(overlay, (0, 0))
+        self.interactive_props = [self.weights, self.dumbbells, self.gallows]
 
-    box_width, box_height = 700, 100
-    box_x = (WINDOW_WIDTH - box_width) // 2
-    box_y = WINDOW_HEIGHT - box_height - 20
-    box_rect = pygame.Rect(box_x, box_y, box_width, box_height)
+        # Digging target zone near the gallows
+        self.dig_zone = pygame.Rect(DIG_TARGET_X - 40, DIG_TARGET_Y - 30, 90, 70)
 
-    pygame.draw.rect(screen, COLOR_VOID, box_rect, border_radius=5)
-    pygame.draw.rect(screen, (80, 120, 160), box_rect, 2, border_radius=5)
+        # Solid obstacles for feet collision
+        self.obstacles = [
+            pygame.Rect(75, 360, 70, 30),     # Weights base
+            pygame.Rect(225, 360, 70, 30),    # Dumbbells base
+            pygame.Rect(550, 410, 48, 15),    # Ghost feet base only (walk behind enabled)
+            pygame.Rect(675, 350, 205, 50),   # Gallows legs touching floor
+        ]
 
-    speaker_surf = font.render(speaker_name, True, (130, 180, 220))
-    screen.blit(speaker_surf, (box_x + 18, box_y + 10))
+        # Floor boundary: Character feet cannot walk into the wall above this line
+        self.wall_limit_y = 370
 
-    msg_surf = small_font.render(text_line, True, COLOR_BONE)
-    screen.blit(msg_surf, (box_x + 18, box_y + 38))
+        # Item & interaction states matching standard item names
+        self.puzzle = HangmanPuzzle(WORD_TO_GUESS)
+        self.state = "EXPLORE"
+        self.show_note = False
+        self.has_letter_yard = False
+        self.found_key_yard = False
+        self.has_spade = False
+        self.found_medication_yard = False
+        self.feedback_message = ""
+        self.feedback_timer = 0
 
-    hint_surf = small_font.render("[Press SPACE or E to continue...]", True, (140, 140, 140))
-    screen.blit(hint_surf, (box_x + box_width - hint_surf.get_width() - 18, box_y + box_height - 24))
+        # Riddle note contents
+        self.note_text = [
+            "Block B",
+            "",
+            "Seven crows stare from the wired fence...",
+            "Two big towers staring at the cursed one...",
+            "Only five minutes before the accursed judgement",
+            "I still remember that cursed day",
+            "I am so sorry. I could have saved you...",
+            "I cannot stand this agony",
+            "The sorrow, the pain watching you slowly fade away",
+            "",
+            "Forgive me.                          -S",
+            "",
+            "[Click anywhere to close]"
+        ]
 
+        # Buttons
+        self.dialogue_btn1 = pygame.Rect(0, 0, 0, 0)
+        self.dialogue_btn2 = pygame.Rect(0, 0, 0, 0)
+        self.puzzle_retry_btn = pygame.Rect(0, 0, 0, 0)
+        self.puzzle_exit_btn = pygame.Rect(0, 0, 0, 0)
 
-def draw_note_reading(screen, font, small_font, text_lines):
-    # Renders the inspectable note document
-    overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
-    overlay.fill((*COLOR_VOID, 230))
-    screen.blit(overlay, (0, 0))
-
-    note_w, note_h = 600, 240
-    note_x = (WINDOW_WIDTH - note_w) // 2
-    note_y = (WINDOW_HEIGHT - note_h) // 2
-    note_rect = pygame.Rect(note_x, note_y, note_w, note_h)
-
-    pygame.draw.rect(screen, COLOR_NOTE, note_rect, border_radius=6)
-    pygame.draw.rect(screen, COLOR_DIRT, note_rect, 3, border_radius=6)
-
-    title = font.render("-- STRANGE NOTE --", True, (40, 30, 20))
-    screen.blit(title, (note_x + note_w // 2 - title.get_width() // 2, note_y + 15))
-
-    curr_y = note_y + 50
-    for line in text_lines:
-        color = COLOR_BLOOD_BRIGHT if "[" in line and "]" in line else (30, 25, 20)
-        line_surf = small_font.render(line, True, color) # This is for generating the text
-        screen.blit(line_surf, (note_x + 30, curr_y))
-        curr_y += 22
-
-    close_surf = small_font.render("[Press SPACE, E or ESC to close]", True, COLOR_BLOOD)
-    screen.blit(close_surf, (note_x + note_w // 2 - close_surf.get_width() // 2, note_y + note_h - 26))
-
-
-# This entire function is for defining the hangman and the different parts of it
-# It took quite a lot to program but I thought it was a good idea to develop this within the game
-def draw_hangman_figure(screen, x, y, wrong_guesses):
-    # This draws the hangman according to the different answers that the player gives 
-    color = COLOR_BONE
-    pygame.draw.line(screen, COLOR_BLOOD, (x, y + 130), (x + 70, y + 130), 3)
-    pygame.draw.line(screen, color, (x + 15, y + 130), (x + 15, y), 3)
-    pygame.draw.line(screen, color, (x + 15, y), (x + 60, y), 3)
-    pygame.draw.line(screen, color, (x + 60, y), (x + 60, y + 18), 3)
-
-# For this part I had to use the help of Gemini but basically this part of the code represents the body itself of the hangman figure
-    parts = [
-        lambda: pygame.draw.circle(screen, color, (x + 60, y + 28), 9, 2),
-        lambda: pygame.draw.line(screen, color, (x + 60, y + 37), (x + 60, y + 75), 2),
-        lambda: pygame.draw.line(screen, color, (x + 60, y + 45), (x + 45, y + 65), 2),
-        lambda: pygame.draw.line(screen, color, (x + 60, y + 45), (x + 75, y + 65), 2),
-        lambda: pygame.draw.line(screen, color, (x + 60, y + 75), (x + 45, y + 105), 2),
-        lambda: pygame.draw.line(screen, color, (x + 60, y + 75), (x + 75, y + 105), 2),
-    ]
-
-    for i in range(min(wrong_guesses, len(parts))):
-        parts[i]()
-
-
-def draw_hangman_popup(screen, puzzle, font, small_font, big_font):
-    # This draws the interface of the minigame 
-    overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
-    overlay.fill((*COLOR_FOG, 230))
-    screen.blit(overlay, (0, 0))
-
-    box_width, box_height = 640, 270
-    box_x = (WINDOW_WIDTH - box_width) // 2
-    box_y = (WINDOW_HEIGHT - box_height) // 2
-    box_rect = pygame.Rect(box_x, box_y, box_width, box_height)
-
-    pygame.draw.rect(screen, COLOR_VOID, box_rect, border_radius=6)
-    pygame.draw.rect(screen, COLOR_BLOOD, box_rect, 2, border_radius=6)
-
-    title = font.render("The Ghost of the Yard Puzzle", True, COLOR_BONE)
-    screen.blit(title, (box_x + box_width // 2 - title.get_width() // 2, box_y + 12))
-
-    draw_hangman_figure(screen, box_x + 40, box_y + 40, puzzle.wrong_guesses)
-
-    word_surface = big_font.render(puzzle.display_word(), True, COLOR_SICKLY)
-    screen.blit(word_surface, (box_x + 190, box_y + 65))
-
-    wrong_letters = sorted(letter for letter in puzzle.guessed_letters if letter not in puzzle.word)
-    wrong_text = font.render("Wrong: " + " ".join(wrong_letters), True, COLOR_BLOOD_BRIGHT)
-    screen.blit(wrong_text, (box_x + 190, box_y + 115))
-
-    if puzzle.solved:
-        msg1 = small_font.render("The ghost whispers: 'You are worthy. Here, take this shovel...'", True, (120, 200, 140)) # Added some dialogue options to make the experience more interactive
-        msg2 = small_font.render(f"The ghost smiles in a strange way and whispers: [{MEDICATION_COORDINATES}]", True, COLOR_GOLD)
-        msg3 = small_font.render("Press ESC to return to the Yard.", True, (160, 160, 160))
-
-        screen.blit(msg1, (box_x + box_width // 2 - msg1.get_width() // 2, box_y + 175))
-        screen.blit(msg2, (box_x + box_width // 2 - msg2.get_width() // 2, box_y + 200))
-        screen.blit(msg3, (box_x + box_width // 2 - msg3.get_width() // 2, box_y + 230))
-
-    elif puzzle.failed:
-        fail_surface = font.render("You failed. Press R to restart.", True, COLOR_BLOOD_BRIGHT)
-        screen.blit(fail_surface, (box_x + box_width // 2 - fail_surface.get_width() // 2, box_y + 195))
-
-    else:
-        hint_surface = small_font.render("Guess the letters with your keyboard  (ESC to leave)", True, (150, 145, 150))
-        screen.blit(hint_surface, (box_x + box_width // 2 - hint_surface.get_width() // 2, box_y + 210))
-
-# Added the weights minigame which is required for the good ending. The function is basically that the player has to press ESCAPE in order to obtain the note
-def draw_weights_minigame(screen, progress, font, small_font):
-    # This draws the smashing screen where the player has to press SPACE couple of times 
-    overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
-    overlay.fill((*COLOR_FOG, 220))
-    screen.blit(overlay, (0, 0))
-
-    box_w, box_h = 540, 200
-    box_x = (WINDOW_WIDTH - box_w) // 2
-    box_y = (WINDOW_HEIGHT - box_h) // 2
-    box_rect = pygame.Rect(box_x, box_y, box_w, box_h)
-
-    pygame.draw.rect(screen, COLOR_VOID, box_rect, border_radius=6)
-    pygame.draw.rect(screen, COLOR_BLOOD, box_rect, 2, border_radius=6)
-
-    title = font.render("Heavy Weights Puzzle", True, COLOR_BONE)
-    hint = small_font.render("Press [SPACE] quickly to lift the bar | [ESC] to give up", True, (160, 160, 160))
-    screen.blit(title, (box_x + box_w // 2 - title.get_width() // 2, box_y + 20))
-    screen.blit(hint, (box_x + box_w // 2 - hint.get_width() // 2, box_y + 50))
-
-    # Background bar
-    bar_w, bar_h = 320, 22
-    bar_x = box_x + (box_w - bar_w) // 2
-    bar_y = box_y + 90
-    pygame.draw.rect(screen, (25, 20, 25), (bar_x, bar_y, bar_w, bar_h), border_radius=4)
-
-    # Filled progress bar
-    fill_w = int((progress / 100.0) * bar_w)
-    if fill_w > 0:
-        pygame.draw.rect(screen, COLOR_BLOOD_BRIGHT, (bar_x, bar_y, fill_w, bar_h), border_radius=4)
-
-    pygame.draw.rect(screen, COLOR_BONE, (bar_x, bar_y, bar_w, bar_h), 2, border_radius=4)
-
-
-# The GhostNPC is basically the skeleton so I am gonna change this because it would be cool to have a better design of it
-class GhostNPC:
-    def __init__(self, x, y, width, height):
-        self.rect = pygame.Rect(x, y, width, height)
-
-    def is_near(self, player):
-        dist = math.hypot(self.rect.centerx - player.x, self.rect.centery - (player.y - 20))
-        return dist < 65
-
-
-# Here is where basically begins the main structure for this section of the game
-
-def main():
-    screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-    pygame.display.set_caption("The Ghost's Puzzle")
-    clock = pygame.time.Clock()
-
-    inventory = Inventory()
-
-    font = pygame.font.SysFont(None, 22)
-    small_font = pygame.font.SysFont(None, 18)
-    big_font = pygame.font.SysFont(None, 34)
-
-    # Load background image
-    yard_bg = pygame.image.load("yard_background.png").convert()
-    yard_bg = pygame.transform.scale(yard_bg, (WINDOW_WIDTH, WINDOW_HEIGHT))
-
-    player = StickmanPlayer(260, 290)
-    ghost = GhostNPC(435, 190, 75, 100)
-
-    # Interactive zone for the Weights bench
-    weights_zone = pygame.Rect(230, 200, 70, 70)
-    weights_progress = 0.0
-    weights_cleared = False
-
-    dumbbells_zone = pygame.Rect(100, 220, 50, 50)
-    key_fragment_found = False
-
-    # Static collision obstacles
-    # Had to implement the collision because otherwise we would have the same problem as with the demo of the maze
-    obstacles = [
-        pygame.Rect(60, 190, 60, 80),
-        pygame.Rect(180, 215, 60, 55),
-        pygame.Rect(550, 160, 110, 100),
-    ]
-
-    puzzle = HangmanPuzzle(WORD_TO_GUESS)
-    
-    game_state = "EXPLORE"
-
-    # Digging state variables
-    hole_dug = False
-    feedback_message = ""
-    feedback_timer = 0
-
-    # Variables for dialogues
-    monologue_lines = []
-    monologue_index = 0
-    monologue_speaker = "Protagonist"
-
-# This is the main text for when the protagonist finds the note after completing the Weights puzzle
-    note_text = [
-        "I do not know how long have I been here",
-        "So confused...",
-        "I hear voices sometimes",
-        "I hear them scream",
-        "I do not know what is going on here...",
-        "I need to escape",
-        "[ 7 4 - - - - ]",
-    ]
-
-    # Dialogue for the Ghost puzzle (aka hangman puzzle)
-    dialogue_nodes = {
-        "intro": {
-            "speaker": "The Ghost of the Yard:",
-            "text": "You are looking for answers. You seek a way out from this prison.",
-            "options": {
-                "1": "Please, I need to escape. I do not know where I am. Can you please help me? I will do whatever you want.",
-                "2": "Step away. (Leave)"
-            }
-        },
-        "medication_info": {
-            "speaker": "The ghost of the Yard:",
-            "text": "I help you, but only if you solve a small puzzle.",
-            "options": {
-                "1": "I will accept that challenge.",
-                "2": "I do not trust you. (Leave)"
-            }
-        },
-        "challenge_prompt": {
-            "speaker": "The ghost of the Yard:",
-            "text": "Then prove you are worthy for this challenge. Guess the word and I will help you escape.",
-            "options": {
-                "1": "Step up to the gallows (Start Hangman)",
-                "2": "Step away. (Leave)"
+        # Dialogue tree
+        self.current_dialogue = "intro"
+        self.dialogue_nodes = {
+            "intro": {
+                "speaker": "The Skeleton Ghost of the Yard:",
+                "text": "You are looking for answers. I see it. You seek a way out, am I wrong?",
+                "opt1": "Please. I need to escape. Can you please help me?",
+                "opt2": "Step away. (Leave)"
+            },
+            "challenge_prompt": {
+                "speaker": "The Skeleton Ghost of the Yard:",
+                "text": "You need to prove that you are worthy. Here is my challenge.",
+                "opt1": "Step up to the gallows (Start Hangman game)",
+                "opt2": "I don't trust you. (Leave)"
             }
         }
-    }
-    current_dialogue = "intro"
 
-    running = True
-    while running:
-        # Weights puzzle
-        if game_state == "WEIGHTS_GAME":
-            weights_progress = max(0.0, weights_progress - 0.5)
+    def _load_canvas_layer(self, filename, alpha=True):
+        full_path = os.path.join(self.base_dir, filename)
+        if os.path.exists(full_path):
+            img = pygame.image.load(full_path)
+            img = img.convert_alpha() if alpha else img.convert()
+            return pygame.transform.scale(img, (WINDOW_WIDTH, WINDOW_HEIGHT))
+        return pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA if alpha else 0)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+    def handle_click(self, mouse_pos):
+        player_x = self.your_character.rect.centerx
+        player_y = self.your_character.rect.centery
 
-            elif event.type == pygame.KEYDOWN:
-                # Inventory handlers
-                if game_state == "EXPLORE":
-                    if event.key in (pygame.K_i, pygame.K_TAB):
-                        game_state = "INVENTORY"
+        # Close note if open
+        if self.show_note:
+            self.show_note = False
+            return
 
-                    # Talk with Ghost NPC
-                    elif event.key == pygame.K_e and ghost.is_near(player):
-                        game_state = "DIALOGUE"
-                        current_dialogue = "intro"
+        # Handle hangman puzzle input
+        if self.puzzle.is_open:
+            if not self.puzzle.solved and not self.puzzle.failed:
+                for char, r in self.puzzle.letter_buttons.items():
+                    if r.collidepoint(mouse_pos):
+                        self.puzzle.guess(char)
+                        if self.puzzle.solved:
+                            self.has_spade = True
+                        break
 
-                    # Interact with the weights bench
-                    elif event.key == pygame.K_e:
-                        dist_weights = math.hypot(weights_zone.centerx - player.x, weights_zone.centery - player.y)
-                        dist_dumbbells = math.hypot(dumbbells_zone.centerx - player.x, dumbbells_zone.centery - player.y)
+            if self.puzzle.failed and self.puzzle_retry_btn.collidepoint(mouse_pos):
+                self.puzzle.reset()
+            elif self.puzzle_exit_btn.collidepoint(mouse_pos):
+                self.puzzle.close()
+                self.state = "EXPLORE"
+            return
 
-                        # Conditional loop for the Weight puzzle (Good ending)
-                        if dist_weights < 55:
-                            if not weights_cleared:
-                                game_state = "WEIGHTS_GAME"
-                                weights_progress = 0.0
-                            else:
-                                game_state = "READ_NOTE"
+        # Handle dialogue choices
+        if self.state == "DIALOGUE":
+            if self.dialogue_btn1.collidepoint(mouse_pos):
+                if self.current_dialogue == "intro":
+                    self.current_dialogue = "challenge_prompt"
+                elif self.current_dialogue == "challenge_prompt":
+                    self.state = "EXPLORE"
+                    self.puzzle.start()
+            elif self.dialogue_btn2.collidepoint(mouse_pos):
+                self.state = "EXPLORE"
+            return
 
-                        # Conditional loop for the Key fragment (Neutral/Loop ending)
-                        elif dist_dumbbells < 50:
-                            if not key_fragment_found:
-                                key_fragment_found = True
-                                inventory.add_item("Key Fragment 1")
-                                monologue_lines = [
-                                    "You try to move the heavy dumbbells to inspect as you have found something interesting",
-                                    "Trapped underneath you discover a fragment of an old key.",
-                                    "It looks like it needs to be combined with other parts",
-                                    "It might be useful for the door that you found at the beginning.",
-                                    "Without giving much thought, you decide to keep it. Just in case it might be useful"
-                                ]
-
-                                monologue_index = 0
-                                monologue_speaker = "Protagonist"
-                                game_state = "MONOLOGUE"
-                            else:
-                                feedback_message = "There is nothing else hidden beneath the dumbbells."
-                                feedback_timer = 120
-
-                    # Dig action with Shovel
-
-                    elif event.key == pygame.K_SPACE:
-                        if "Spade" in inventory.items:
-                            dist_to_spot = math.hypot(player.x - DIG_TARGET_X, player.y - DIG_TARGET_Y)
-                            if dist_to_spot < 35:
-                                if not hole_dug:
-                                    hole_dug = True
-                                    inventory.add_item("Medication Fragment 1")
-                                    feedback_message = "You managed to obtain the Medication fragment!"
-                                    feedback_timer = 180
-                                else:
-                                    feedback_message = "You already excavated this spot."
-                                    feedback_timer = 120
-                            else:
-                                feedback_message = "You dig into the hard ground, but find nothing of interest here..."
-                                feedback_timer = 120
+        # Handle exploration clicks
+        if self.state == "EXPLORE":
+            # Digging spot near the gallows
+            if self.dig_zone.collidepoint(mouse_pos):
+                dist = math.hypot(self.dig_zone.centerx - player_x, self.dig_zone.centery - player_y)
+                if dist < 130:
+                    if self.has_spade:
+                        if not self.found_medication_yard:
+                            self.found_medication_yard = True
+                            self.feedback_message = "You dug up the soft earth and found 'Medication (Yard)'!"
+                            self.feedback_timer = 160
                         else:
-                            feedback_message = "You need some sort of tool to dig here."
-                            feedback_timer = 120
+                            self.feedback_message = "You already unearthed 'Medication (Yard)' from this spot."
+                            self.feedback_timer = 90
+                    else:
+                        self.feedback_message = "The dirt looks disturbed here, but you need a Spade to dig."
+                        self.feedback_timer = 110
+                else:
+                    self.feedback_message = "You need to come closer as there is something interesting here"
+                    self.feedback_timer = 90
+                return
 
-                # Monologue reaction box handler
-                elif game_state == "MONOLOGUE":
-                    if event.key in (pygame.K_SPACE, pygame.K_e, pygame.K_RETURN):
-                        monologue_index += 1
-                        if monologue_index >= len(monologue_lines):
-                            game_state = "EXPLORE"
-                    elif event.key == pygame.K_ESCAPE:
-                        game_state = "EXPLORE"
+            # Skeleton Ghost dialogue trigger
+            if self.ghost.rect.collidepoint(mouse_pos):
+                dist = math.hypot(self.ghost.rect.centerx - player_x, self.ghost.rect.centery - player_y)
+                if dist < 140:
+                    if self.has_spade:
+                        self.feedback_message = "The Skeleton Ghost watches quietly. You already obtained the Spade."
+                        self.feedback_timer = 110
+                    else:
+                        self.state = "DIALOGUE"
+                        self.current_dialogue = "intro"
+                else:
+                    self.feedback_message = "You need to come closer to speak with the Skeleton Ghost"
+                    self.feedback_timer = 90
+                return
 
-                # Inventory usage with arrow keys
-                # For the player basically to handle the inventory.
-                elif game_state == "INVENTORY":
-                    if event.key == pygame.K_RIGHT:
-                        inventory.move_selection(1)
-                    elif event.key == pygame.K_LEFT:
-                        inventory.move_selection(-1)
-                    elif event.key in (pygame.K_ESCAPE, pygame.K_i, pygame.K_TAB):
-                        game_state = "EXPLORE"
-                    elif event.key == pygame.K_e:
-                        selected = inventory.get_selected_item()
-                        if selected and "Strange Note" in selected:
-                            game_state = "READ_NOTE"
+            # Yard props
+            for prop in self.interactive_props:
+                if prop.rect.collidepoint(mouse_pos):
+                    dist = math.hypot(prop.rect.centerx - player_x, prop.rect.centery - player_y)
+                    if dist < 120:
+                        prop.interact(self)
+                    else:
+                        self.feedback_message = "You need to come closer as there is something interesting here"
+                        self.feedback_timer = 90
+                    break
 
-                # Inner monologue after reading the note
-                elif game_state == "READ_NOTE":
-                    if event.key in (pygame.K_SPACE, pygame.K_ESCAPE, pygame.K_e):
-                        monologue_lines = [
-                            "After reading it carefully you then dedicate some minutes to reflect.",
-                            "You get lost within your own thoughts. You feel so confused...",
-                            "'I need to find a way out. Maybe this code can help me.'",
-                            "You still cannot remove that strange feeling from yourself but you decide to move on",
-                        ]
-                        monologue_index = 0
-                        monologue_speaker = "Protagonist"
-                        game_state = "MONOLOGUE"
+    def handle_key(self, event):
+        # Keyboard letter input directly for the Hangman mini-game
+        if self.puzzle.is_open and not self.puzzle.solved and not self.puzzle.failed:
+            if pygame.K_a <= event.key <= pygame.K_z:
+                char = chr(event.key).upper()
+                self.puzzle.guess(char)
+                if self.puzzle.solved:
+                    self.has_spade = True
 
-                # Dialogue with the Ghost handlers
-                elif game_state == "DIALOGUE":
-                    if event.key == pygame.K_1:
-                        if current_dialogue == "intro":
-                            current_dialogue = "medication_info"
-                        elif current_dialogue == "medication_info":
-                            current_dialogue = "challenge_prompt"
-                        elif current_dialogue == "challenge_prompt":
-                            game_state = "PUZZLE"
+    def update(self):
+        if self.feedback_timer > 0:
+            self.feedback_timer -= 1
 
-                    elif event.key in (pygame.K_2, pygame.K_ESCAPE):
-                        game_state = "EXPLORE"
+    def draw(self, screen):
+        # Draw background and environment layers
+        screen.blit(self.bg, (0, 0))
+        screen.blit(self.weights_layer, (0, 0))
+        screen.blit(self.dumbbell_layer, (0, 0))
+        screen.blit(self.gallows_layer, (0, 0))
 
-                # Hangman Puzzle handlers
-                elif game_state == "PUZZLE":
-                    if event.key == pygame.K_ESCAPE:
-                        game_state = "EXPLORE"
-                    elif event.key == pygame.K_r and puzzle.failed:
-                        puzzle.reset()
-                    elif pygame.K_a <= event.key <= pygame.K_z and not puzzle.solved:
-                        puzzle.guess(chr(event.key))
+        # Y-sorting: draw ghost and character in correct depth order
+        if self.your_character.rect.bottom < self.ghost.rect.bottom:
+            self.your_character.draw(screen)
+            self.ghost.draw(screen)
+        else:
+            self.ghost.draw(screen)
+            self.your_character.draw(screen)
 
-                        if puzzle.solved and not puzzle.reward_claimed:
-                            inventory.add_item("Spade")
-                            puzzle.reward_claimed = True
+        # Draw feedback text
+        if self.feedback_timer > 0:
+            txt = self.small_font.render(self.feedback_message, True, (212, 175, 55))
+            screen.blit(txt, (WINDOW_WIDTH // 2 - txt.get_width() // 2, 440))
 
-                # Weights state handlers
-                elif game_state == "WEIGHTS_GAME":
-                    if event.key == pygame.K_SPACE:
-                        weights_progress += 12.0
-                        if weights_progress >= 100.0:
-                            weights_cleared = True
-                            if "Strange Note 1" not in inventory.items:
-                                inventory.add_item("Strange Note 1")
+        # Draw note overlay
+        if self.show_note:
+            box = pygame.Rect(260, 60, 460, 360)
+            pygame.draw.rect(screen, (235, 225, 200), box)
+            pygame.draw.rect(screen, (140, 20, 25), box, 2)
 
-                            # Reaction of the player
-                            print("\nYour hands start shaking after lifting the weights")
-                            print("You find some strange note. Your hands start shaking. You feel something familiar...")
-                            print("You say to yourself: 'This is so odd...Why am I feeling like this?'")
-                            print("'What is this blood...I do not know why I am doing this but need to figure it out. Need to continue'\n")
+            curr_y = box.y + 15
+            for line in self.note_text:
+                txt = self.small_font.render(line, True, (30, 20, 25))
+                screen.blit(txt, (box.x + 25, curr_y))
+                curr_y += 22
 
-                            game_state = "READ_NOTE"
+        # Draw dialogue box
+        elif self.state == "DIALOGUE":
+            node = self.dialogue_nodes[self.current_dialogue]
+            box = pygame.Rect(140, 320, 700, 130)
+            pygame.draw.rect(screen, (10, 8, 12), box, border_radius=5)
+            pygame.draw.rect(screen, (140, 20, 25), box, 2, border_radius=5)
 
-                    elif event.key == pygame.K_ESCAPE:
-                        game_state = "EXPLORE"
+            screen.blit(self.font.render(node["speaker"], True, (212, 175, 55)), (box.x + 20, box.y + 12))
+            screen.blit(self.small_font.render(node["text"], True, (220, 215, 200)), (box.x + 20, box.y + 42))
 
-        # Movement handling (arrow keys only)
-        if game_state == "EXPLORE":
-            keys = pygame.key.get_pressed()
-            dx = keys[pygame.K_RIGHT] - keys[pygame.K_LEFT]
-            dy = keys[pygame.K_DOWN] - keys[pygame.K_UP]
-            player.move(dx, dy, obstacles)
+            self.dialogue_btn1 = pygame.Rect(box.x + 20, box.y + 80, 300, 32)
+            self.dialogue_btn2 = pygame.Rect(box.x + 340, box.y + 80, 160, 32)
+            pygame.draw.rect(screen, (140, 20, 25), self.dialogue_btn1, border_radius=4)
+            pygame.draw.rect(screen, (140, 20, 25), self.dialogue_btn2, border_radius=4)
 
-        # Render background
-        screen.blit(yard_bg, (0, 0))
+            txt1 = self.small_font.render(node["opt1"], True, (220, 215, 200))
+            txt2 = self.small_font.render(node["opt2"], True, (220, 215, 200))
+            screen.blit(txt1, (self.dialogue_btn1.x + 10, self.dialogue_btn1.y + 8))
+            screen.blit(txt2, (self.dialogue_btn2.x + 10, self.dialogue_btn2.y + 8))
 
-        # Render excavated hole marker
-        if hole_dug:
-            pygame.draw.ellipse(screen, COLOR_DIRT, (DIG_TARGET_X - 14, DIG_TARGET_Y - 6, 28, 12))
-            pygame.draw.ellipse(screen, COLOR_VOID, (DIG_TARGET_X - 10, DIG_TARGET_Y - 4, 20, 8))
+        # Draw hangman puzzle overlay
+        if self.puzzle.is_open:
+            self.puzzle.draw(screen, self.small_font, self.big_font)
+            self.puzzle_exit_btn = pygame.Rect(720, 330, 80, 28)
+            pygame.draw.rect(screen, (140, 20, 25), self.puzzle_exit_btn, border_radius=4)
+            screen.blit(self.small_font.render("Exit", True, (220, 215, 200)), (self.puzzle_exit_btn.x + 25, self.puzzle_exit_btn.y + 6))
 
-        # Render player
-        player.draw(screen)
-
-        # Render HUD elements
-        if game_state == "EXPLORE":
-            # Ghost interaction option
-            if ghost.is_near(player):
-                prompt_surf = small_font.render("Press [E] to speak with the Skeleton Ghost", True, COLOR_GOLD)
-                screen.blit(prompt_surf, (WINDOW_WIDTH // 2 - prompt_surf.get_width() // 2, WINDOW_HEIGHT - 25))
-
-            # Weights bench instructions
-            # You get this message when you are nearby the weights bench
-            dist_w = math.hypot(weights_zone.centerx - player.x, weights_zone.centery - player.y)
-            if dist_w < 55 and not weights_cleared:
-                w_surf = small_font.render("Press [E] to inspect the Weights Bench", True, COLOR_GOLD)
-                screen.blit(w_surf, (WINDOW_WIDTH // 2 - w_surf.get_width() // 2, WINDOW_HEIGHT - 25))
-
-            # Visual render for the dumbbells
-            dist_d = math.hypot(dumbbells_zone.centerx - player.x, dumbbells_zone.centery - player.y)
-            if dist_d < 50 and not key_fragment_found:
-                d_surf = small_font.render("Press [E] to inspect the Dumbbells", True, COLOR_GOLD)
-                screen.blit(d_surf, (WINDOW_WIDTH // 2 - d_surf.get_width() // 2, WINDOW_HEIGHT - 25))
-
-            # Player coordinates display
-            coords_surf = small_font.render(f"Pos: X: {int(player.x)}, Y: {int(player.y)}", True, (160, 160, 160))
-            screen.blit(coords_surf, (WINDOW_WIDTH - 120, 10))
-
-            # Inventory display
-            # The idea of introducing the TAB option came from the Resident Evil games in which normally you press this button to use the inventory 
-            inv_surf = small_font.render(f"Inventory [I/TAB]: {', '.join(inventory.items) if inventory.items else 'Empty'}", True, COLOR_BONE)
-            screen.blit(inv_surf, (15, 10))
-
-            # Dig action hint
-            if "Spade" in inventory.items and not hole_dug:
-                shovel_hint = small_font.render("Press [SPACE] to Dig with Shovel", True, (120, 200, 140))
-                screen.blit(shovel_hint, (15, 28))
-
-            # Feedback messages
-            if feedback_timer > 0:
-                feed_surf = small_font.render(feedback_message, True, COLOR_GOLD)
-                screen.blit(feed_surf, (WINDOW_WIDTH // 2 - feed_surf.get_width() // 2, WINDOW_HEIGHT - 45))
-                feedback_timer -= 1
-
-        
-        elif game_state == "DIALOGUE":
-            draw_dialogue_box(screen, font, small_font, dialogue_nodes[current_dialogue])
-
-        elif game_state == "PUZZLE":
-            draw_hangman_popup(screen, puzzle, font, small_font, big_font)
-
-        elif game_state == "WEIGHTS_GAME":
-            draw_weights_minigame(screen, weights_progress, font, small_font)
-
-        elif game_state == "INVENTORY":
-            inventory.draw(screen, font, small_font)
-
-        elif game_state == "READ_NOTE":
-            draw_note_reading(screen, font, small_font, note_text)
-
-        elif game_state == "MONOLOGUE":
-            draw_monologue_box(screen, font, small_font, monologue_speaker, monologue_lines[monologue_index])
-
-        pygame.display.flip()
-        clock.tick(FPS)
-
-    pygame.quit()
+            if self.puzzle.failed:
+                self.puzzle_retry_btn = pygame.Rect(170, 330, 90, 28)
+                pygame.draw.rect(screen, (140, 20, 25), self.puzzle_retry_btn, border_radius=4)
+                screen.blit(self.small_font.render("Retry", True, (220, 215, 200)), (self.puzzle_retry_btn.x + 25, self.puzzle_retry_btn.y + 6))
 
 
-if __name__ == "__main__":
-    main()
+# Character class with feet-based collision
+class Character:
+    def __init__(self, x, y):
+        self.speed = 4
+        if os.path.exists("your_character.png"):
+            self.image = pygame.image.load("your_character.png").convert_alpha()
+        else:
+            self.image = pygame.Surface((50, 70))
+            self.image.fill((60, 120, 200))
+
+        self.transform_image = pygame.transform.scale(self.image, (50, 70))
+        self.rect = self.transform_image.get_rect(topleft=(x, y))
+        self.x = self.rect.x
+        self.y = self.rect.y
+
+    def get_feet_rect(self):
+        return pygame.Rect(self.rect.x + 12, self.rect.bottom - 16, 26, 16)
+
+    def draw(self, screen):
+        screen.blit(self.transform_image, self.rect)
+
+    def move(self, obstacles, wall_limit_y):
+        keys = pygame.key.get_pressed()
+        dx = 0
+        dy = 0
+
+        if keys[pygame.K_w] or keys[pygame.K_UP]:
+            dy -= self.speed
+        if keys[pygame.K_s] or keys[pygame.K_DOWN]:
+            dy += self.speed
+        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+            dx -= self.speed
+        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+            dx += self.speed
+
+        feet = self.get_feet_rect()
+
+        # Horizontal movement and obstacle collision
+        feet.x += dx
+        for obs in obstacles:
+            if feet.colliderect(obs):
+                if dx > 0:
+                    feet.right = obs.left
+                elif dx < 0:
+                    feet.left = obs.right
+
+        # Vertical movement and obstacle collision
+        feet.y += dy
+        for obs in obstacles:
+            if feet.colliderect(obs):
+                if dy > 0:
+                    feet.bottom = obs.top
+                elif dy < 0:
+                    feet.top = obs.bottom
+
+        # Room boundary enforcement
+        if feet.top < wall_limit_y:
+            feet.top = wall_limit_y
+        if feet.bottom > 460:
+            feet.bottom = 460
+        if feet.left < 35:
+            feet.left = 35
+        if feet.right > WINDOW_WIDTH - 35:
+            feet.right = WINDOW_WIDTH - 35
+
+        # Re-anchor sprite position strictly to feet
+        self.rect.bottom = feet.bottom
+        self.rect.centerx = feet.centerx
+        self.x = self.rect.x
+        self.y = self.rect.y
+
+    def update(self):
+        pass
+
+    def set_pos(self, x, y):
+        self.rect.topleft = (x, y)
+        self.x = x
+        self.y = y
+
+
+# Main Game Loop
+player = Character(200, 390)
+yard = Yard(player)
+
+running = True
+while running:
+    # Safely check if the imported inventory is currently toggled open
+    inventory_open = getattr(inventory, "is_open", False)
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+        elif event.type == pygame.KEYDOWN:
+            # TAB key toggles inventory open/closed
+            if event.key == pygame.K_TAB:
+                if hasattr(inventory, "toggle"):
+                    inventory.toggle()
+                elif hasattr(inventory, "is_open"):
+                    inventory.is_open = not inventory.is_open
+            else:
+                # Only pass keys to Yard (Hangman typing) if inventory is closed
+                if not inventory_open:
+                    yard.handle_key(event)
+
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            # If inventory is active, route mouse clicks to inventory
+            if inventory_open:
+                if hasattr(inventory, "handle_click"):
+                    inventory.handle_click(event.pos)
+            else:
+                yard.handle_click(event.pos)
+
+    # Move player only when not paused by dialogue, note, puzzle, or open inventory
+    if yard.state == "EXPLORE" and not yard.puzzle.is_open and not yard.show_note and not inventory_open:
+        player.move(yard.obstacles, yard.wall_limit_y)
+
+    player.update()
+    yard.update()
+
+    # Base scene rendering
+    yard.draw(screen)
+
+    # Render inventory overlay on top of everything when open
+    if inventory_open and hasattr(inventory, "draw"):
+        inventory.draw(screen)
+
+    pygame.display.flip()
+    clock.tick(60)
+
+pygame.quit()
