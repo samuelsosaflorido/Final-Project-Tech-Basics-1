@@ -4,7 +4,7 @@ class Character():
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.image = pygame.image.load("pixil-frame-0(5).png").convert_alpha()
+        self.image = pygame.image.load("silent_walls_character.png").convert_alpha()
         self.transformed_image = pygame.transform.scale(self.image, (100, 100))
         self.rect = self.transformed_image.get_rect(topleft=(x, y))
         self.hitbox = pygame.Rect(x, y + 50, 60, 20) 
