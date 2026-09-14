@@ -48,7 +48,6 @@ class Cafeteria():
         self.table_y = 300
         self.completed = False
 
-
     def draw(self, screen):
         background = "gray"
         base_color = "black"

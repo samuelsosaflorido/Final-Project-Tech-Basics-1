@@ -6,15 +6,22 @@
 # so this is the attempt to put it all together in one game without bugs (with a main structure and then the separated rooms)
 
 import pygame
-from sys import *
-from cafeteria import *
 
-from scipy._lib.pyprima.cobyla import update
+# import (from other files in our main file)
+from sys import *
+# from inventory import *
+# from maze import *
+# from hospital import *
+# from cafeteria import *
+# from yard import *
+# from cell import *
+# from scipy._lib.pyprima.cobyla import update
 
 # basic pygame-setup to run the game
 pygame.init()
 screen = pygame.display.set_mode((980, 480))
 clock = pygame.time.Clock()
+
 # make the window "pretty" (Name of the window)
 pygame.display.set_caption("silent walls")
 background = "gray"
@@ -50,26 +57,138 @@ class Character:
     def update(self):
         pass
 
+    def set_pos(self, x, y):
+        self.rect.topleft = (x, y)
 
 
 
-your_character = pygame.image.load("pixil-frame-0(5).png").convert_alpha()
+# I got help from AI for the main Game Loop here
 
-# define a new width and height for your_character
-new_width = 70
-new_height = 80
+# Basic Clas for all the Rooms
+class Room:
+    def __init__(self, name):
+        self.name = name
+        self.exits = {}  # name -> pygame.Rect
 
-# update the new scaled image of your_character
-your_character = pygame.transform.scale(your_character, (new_width, new_height))
-your_character_rect = your_character.get_rect(topleft = (500, 300))
+    def draw(self, screen):
+        pass
 
-#cafeteria =  Cafeteria("your_character")
-#table = Object(300, 300, your_character)
-#chair = Object(2000, 400, your_character)
-#test2 = Table(100, 200, your_character)
+    def check_exits(self, character):
+        """gibt den Namen des Ausgangs zurück, falls der Spieler ihn berührt"""
+        for exit_name, exit_rect in self.exits.items():
+            if character.rect.colliderect(exit_rect):
+                return exit_name
+        return None
+
+# Placeholder for the Rooms
+class SimpleRoom(Room):
+    def __init__(self, name, color, entry_pos=(50, 200)):
+        super().__init__(name)
+        self.color = color
+        self.entry_pos = entry_pos
+        # an exit that is allways goining back to the maze
+        self.exits = {"maze": pygame.Rect(900, 200, 40, 40)}
+
+    def draw(self, screen):
+        screen.fill(self.color)
+        pygame.draw.rect(screen, (255, 0, 0), self.exits["maze"])
+
+# from the Maze to our Rooms
+class Maze(Room):
+    def __init__(self):
+        super().__init__("maze")
+        self.entry_pos = (50, 200)
+
+        # 3 feste Positionen im Maze
+        self.exit_rects = {
+            "exit_1": pygame.Rect(900, 50, 40, 40),
+            "exit_2": pygame.Rect(900, 200, 40, 40),
+            "exit_3": pygame.Rect(900, 350, 40, 40),
+        }
+
+        # hier steht, welcher Raum hinter exit_1/2/3 liegt
+        self.destinations = []
+
+    def set_destinations(self, destinations):
+        """destinations = Liste mit 3 Raum-Namen in Reihenfolge exit_1, exit_2, exit_3"""
+        self.destinations = destinations
+
+    def draw(self, screen):
+        screen.fill((40, 40, 40))
+        for rect in self.exit_rects.values():
+            pygame.draw.rect(screen, (0, 255, 0), rect)
+
+    def check_exits(self, character):
+        for i, rect in enumerate(self.exit_rects.values()):
+            if character.rect.colliderect(rect):
+                return self.destinations[i]
+        return None
+
+# basic Game Loop
+class Game:
+    ALL_ROOMS = ["cell", "hospital", "cafeteria", "yard"]
+
+    def __init__(self):
+        self.character = Character(50, 200)
+
+        self.rooms = {
+            "cell": SimpleRoom("cell", (100, 100, 150)),
+            "hospital": SimpleRoom("hospital", (200, 200, 200)),
+            "cafeteria": SimpleRoom("cafeteria", (150, 100, 50)),
+            "yard": SimpleRoom("yard", (50, 150, 50)),
+        }
+        self.maze = Maze()
+
+        # Startzustand: Spieler beginnt in der Zelle
+        self.current_state = "cell"
+        self.previous_room = "cell"  # merkt sich, woher der Spieler zuletzt kam
+
+    def enter_maze(self, coming_from):
+        """berechnet die 3 Ausgänge des Maze je nachdem, aus welchem Raum man kommt"""
+        if coming_from == "cell":
+            destinations = ["hospital", "cafeteria", "yard"]
+        else:
+            # Startraum + die beiden anderen Räume (außer dem aktuellen)
+            destinations = [r for r in self.ALL_ROOMS if r != coming_from]
+
+        self.maze.set_destinations(destinations)
+        self.current_state = "maze"
+        self.character.set_pos(*self.maze.entry_pos)
+
+    def enter_room(self, room_name):
+        self.current_state = room_name
+        self.previous_room = room_name
+        self.character.set_pos(*self.rooms[room_name].entry_pos)
+
+    def update(self):
+        self.character.move()
+
+        if self.current_state == "maze":
+            result = self.maze.check_exits(self.character)
+            if result:
+                self.enter_room(result)
+        else:
+            current_room = self.rooms[self.current_state]
+            result = current_room.check_exits(self.character)
+            if result == "maze":
+                self.enter_maze(self.previous_room)
+
+    def draw(self, screen):
+        if self.current_state == "maze":
+            self.maze.draw(screen)
+        else:
+            self.rooms[self.current_state].draw(screen)
+
+        self.character.draw(screen)
+
+# AI help end
+
+
+
+
+
 character = Character(500, 300)
-
-
+game = Game()
 
 # back to the basic pygame-setup to run the game
 while True:
@@ -79,6 +198,8 @@ while True:
             exit()
 
     character.move()
+    game.update()
+    game.draw(screen)
 
         #if your_character_rect.colliderect(chair.rect) and chair.rect.collidepoint(event.pos) and event.type == pygame.mouse.get_pressed():
            #print('Hello')
@@ -88,15 +209,7 @@ while True:
 
     # put the separated game sections together
     screen.blit(base, (0, 230))
-    screen.blit(your_character, your_character_rect)
     character.draw(screen)
-    #cafeteria.draw(screen)
-    #if cafeteria.completed:
-        #table.draw(screen)
-
-    #chair.draw(screen)
-
-    #test2.draw(screen)
 
 
 
