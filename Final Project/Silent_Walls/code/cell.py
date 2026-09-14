@@ -21,11 +21,39 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
         #pass 
 
 
+class Cell():
+    def __init__(self, your_character):
+        self.your_character = your_character
+        self.table_x = 980
+        self.table_y = 250
+
+        self.toilet = Toilet(200, 200)
+        self.chest = Chest(100, 200)
+        self.shackles = Shackles(300, 400)
+        self.key = Key(600,200)
+        self.table = Table(400, 200)
+        self.bed = Bed(500, 200)
+
+        #list of objects in cell, so that not every object has to be called upon itself
+        self.objects = [self.table, self.toilet, self.chest, self.shackles, self.key, self.bed]
+
+        self.background = pygame.image.load("pixil-layer-Windows_line.png").convert_alpha()
+        self.background = pygame.transform.scale(self.background, (980, 250))
+
+    def draw(self, screen):
+        screen.blit(self.background, (0, 0))
+
+        #objects drawn over background
+        for obj in self.objects:
+            obj.draw(screen)
+
+
+
 class Table():
-    def __init__(self, x, y, image):
+    def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.image = pygame.image.load ("")
+        self.image = pygame.image.load ("pixil-layer-Table.png").convert_alpha()
         self.rect = self.image.get_rect(topleft=(x, y))
     
     def draw(self, screen):
@@ -34,12 +62,25 @@ class Table():
     def update(self):
         pass 
 
-
-class Toilet():
-    def __init__(self, x, y, image):
+class Bed():
+    def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.image = image
+        self.image = pygame.image.load ("pixil-layer-Bed_lines.png").convert_alpha()
+        self.rect = self.image.get_rect(topleft=(x, y))
+    
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+    
+    def update(self):
+        pass
+
+
+class Toilet():
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.image = pygame.image.load ("pixil-layer-Toilet.png").convert_alpha()
         self.rect = self.image.get_rect(topleft=(x, y))
 
     def draw(self, screen):
@@ -50,10 +91,49 @@ class Toilet():
 
 
 class Key():
-    def __init__(self, x, y, image):
+    def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.image = image
+        self.image = pygame.image.load ("pixil-layer-KEy.png").convert_alpha()
+        self.rect = self.image.get_rect(topleft=(x, y))
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+    def update(self):
+        pass 
+
+class Chest():
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.image = pygame.image.load ("pixil-layer-Chest.png").convert_alpha()
+        self.rect = self.image.get_rect(topleft=(x, y))
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+    def update(self):
+        pass 
+
+class Shackles():
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.image = pygame.image.load ("pixil-layer-Shackles.png").convert_alpha()
+        self.rect = self.image.get_rect(topleft=(x, y))
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+    def update(self):
+        pass 
+
+class Table():
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.image = pygame.image.load ("pixil-layer-Table.png").convert_alpha()
         self.rect = self.image.get_rect(topleft=(x, y))
 
     def draw(self, screen):
@@ -63,21 +143,8 @@ class Key():
         pass 
 
 
-class Cell():
-    def __init__(self, your_character):
-        self.your_character = your_character
-        self.table_x = 500
-        self.table_y = 300
-
-    def draw(self, screen):
-        background = "grey"
-        base_color = "black"
-
-        base = pygame.Surface(())
-
-
 class Character():
-    def __init__(self, x, y, image):
+    def __init__(self, x, y):
         self.x = x
         self.y = y
         self.image = pygame.image.load("pixil-frame-0(5).png").convert_alpha()
@@ -102,5 +169,26 @@ class Character():
         self.move()
 
 
-Character.update()
+pygame.init()
+screen = pygame.display.set_mode ((980, 480))
+clock = pygame.time.Clock()
+
+character = Character(100, 100)
+cell = Cell(character)
+
+running = True
+while running:
+    events = pygame.event.get()
+    for event in events: 
+        if event.type == pygame.QUIT:
+            running = False
+
+    cell.draw(screen)
+
+    pygame.display.flip()
+    clock.tick(60)
+
+pygame.quit()
+
+#Character.update()
 
