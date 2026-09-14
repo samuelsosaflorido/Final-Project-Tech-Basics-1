@@ -189,7 +189,7 @@ class Yard:
             pygame.Rect(675, 350, 205, 50),   # Gallows legs touching floor
         ]
 
-        # Floor boundary: Character feet cannot walk into the wall above this line
+        # Floor boundary: Character feet cannot walk into the wall above this line. 
         self.wall_limit_y = 370
 
         # Item & interaction states matching standard item names
@@ -357,7 +357,7 @@ class Yard:
         screen.blit(self.dumbbell_layer, (0, 0))
         screen.blit(self.gallows_layer, (0, 0))
 
-        # Y-sorting: draw ghost and character in correct depth order
+        # Drawing the ghost and character in correct depth order
         if self.your_character.rect.bottom < self.ghost.rect.bottom:
             self.your_character.draw(screen)
             self.ghost.draw(screen)
@@ -501,7 +501,7 @@ yard = Yard(player)
 
 running = True
 while running:
-    # Safely check if the imported inventory is currently toggled open
+    # Safely check if the imported inventory is currently toggled open. For the inventory to be open and to add the TAB key toggles I had to use Gemini to understand and to get feedback to implement this within the code
     inventory_open = getattr(inventory, "is_open", False)
 
     for event in pygame.event.get():
