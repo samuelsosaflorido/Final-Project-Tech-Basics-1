@@ -57,7 +57,7 @@ class Cafeteria():
 
         # table
 
-        table = pygame.image.load("pixil-frame-0(5).png").convert_alpha()
+        table = pygame.image.load("silent_walls_character.png").convert_alpha()
 
         # define a new width and height for the table
         new_width_table = 70
@@ -65,7 +65,7 @@ class Cafeteria():
 
         # meal service
 
-        meal_service = pygame.image.load("pixil-frame-0(5).png").convert_alpha()
+        meal_service = pygame.image.load("silent_walls_character.png").convert_alpha()
 
         # define a new width and height for the meal_service
         new_width_meal_service = 90
