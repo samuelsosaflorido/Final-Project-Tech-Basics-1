@@ -3,7 +3,7 @@
 # So this is a demo of the yard I have made some dialogue and options and used the pixel art image that we showed during the presentation as a test
 # Okay I have changed a lot in relation to how the code was earlier. I had to use the videos cited in the documentation and also some Gemini help to get some feedback
 # It has been challenging in terms to understanding everything, writing everything and trying to comprehend the logic behind it
-# I also tried to make it more clean this time as lat time was extremely chaotic and could not be well read or understood in general
+# I also tried to make it more clean this time as last time was extremely chaotic and needed refinement 
 
 import math
 import os
