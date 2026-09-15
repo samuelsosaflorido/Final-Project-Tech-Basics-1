@@ -22,11 +22,12 @@ We also added the TAB function for the inventory, the ESC button as well and the
 Make sure to have the Python installed (of course). Our game does not require many other programs, apart from having pygame installed and the corresponding files that are in our repository 
 
 ### Gameplay and level design 
-You will control a character that will explore a Prison. There are different rooms and areas in which the player will be able to access. 
-You begin in a hospital and you need to find a way out of that area within a Prison. After escaping, you will end up in a maze that is connected to the different rooms of the game
+You will control a character who is trapped in a Prison. 
+You begin in the Hospital of the Prison. This area is important as it provides the clues to escape. After this, you will continue moving and find yourself into the Maze which will connect all the areas and allow the player to go through the entire area. 
 The Maze also has a small combat encounter done with the key arrows with a rat that is moving around the area, similar to the ghosts of Pacman. We also did some health bar for this part. 
 After this, the player will be able to choose which room should be firstly accessed
 The different endings of the game are according to the different items you encounter. All the rooms must be visited in order to escape as it is relevant. Depending on the items you collect, you will get a different ending.
+The main rooms that you can see are the Cafeteria, the Cells and the Yard. Each room contains the same items: keys, letters and other minigames that will give you another extra item. Collecting three pieces of these items will allow you to go back to the main room, the Hospital, which will allow you to escape. 
 
 #### STORY
 Well we're not spoiling anything so 
