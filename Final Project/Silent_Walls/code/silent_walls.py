@@ -18,6 +18,7 @@ from cafeteria import *
 from yard import * 
 from cell import *
 # from scipy._lib.pyprima.cobyla import update
+from silent_walls_endings import *
 
 import os
 import sys
@@ -166,6 +167,7 @@ class Game:
 
 character = Character(500, 300)
 game = Game()
+
 
 # back to the basic pygame-setup to run the game
 while True:
