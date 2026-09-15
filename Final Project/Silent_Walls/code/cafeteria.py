@@ -13,10 +13,10 @@ FONT = pygame.font.SysFont("Arial", 24)
 class Cafeteria():
     def __init__(self):
         # Positionen und Größen angepasst (Beispielwerte – gerne weiter anpassen)
-        self.food = Food(530, 190)
-        self.table1 = Table1(50, 330)
-        self.table2 = Table2(300, 220)
-        self.trash = Trash(830, 270)
+        self.food = Food(250, 190)
+        self.table1 = Table1(30, 320)
+        self.table2 = Table2(700, 300)
+        self.trash = Trash(550, 250)
         self.letter = Letter(730, 220)     # on the Table with the Letter
         self.key = Key(50, 10)             # in the Trash
         self.medicine = Medicine(600, 90)  # the Skeleton has the medicine
@@ -56,7 +56,7 @@ class Cafeteria():
         if self.talking_to_skeleton and not self.question_answered:
             self.draw_question(screen)
 
-    # AI helped me here
+    # AI helped me here a bit for the Question-Code and the collision with the objects
     def draw_question(self, screen):
         overlay = pygame.Surface((980, 480), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 180))
@@ -104,6 +104,9 @@ class Cafeteria():
             character.inventory.append("medicine")
         self.talking_to_skeleton = False
 
+    # AI help end
+
+
 
 class Food():
     def __init__(self, x, y):
@@ -128,7 +131,7 @@ class Table1():
 class Table2():
     def __init__(self, x, y):
         self.image = pygame.image.load("cafeteria_table_with_letter.png").convert_alpha()
-        self.image = pygame.transform.scale(self.image, (200, 150))
+        self.image = pygame.transform.scale(self.image, (240, 150))
         self.rect = self.image.get_rect(topleft=(x, y))
 
     def draw(self, screen):
@@ -173,4 +176,3 @@ class Medicine():
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
-
