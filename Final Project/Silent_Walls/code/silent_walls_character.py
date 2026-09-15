@@ -1,6 +1,6 @@
 import pygame
 
-#Collision by Karo Fischer (help and explaintions by ChatAI Anthropic Claude Sonnet 4.6)
+#Collision by Karo Fischer (help and explanations by ChatAI Anthropic Claude Sonnet 4.6)
 class Character():
     def __init__(self, x, y):
         self.x = x
@@ -9,6 +9,13 @@ class Character():
         self.transformed_image = pygame.transform.scale(self.image, (100, 100))
         self.rect = self.transformed_image.get_rect(topleft=(x, y))
         self.hitbox = pygame.Rect(x, y + 50, 60, 20) 
+
+        #jump for minigame 
+        self.velocity_y = 0
+        self.on_ground = True 
+        self.jump_power = -30
+        self.gravity = 0.8
+        self.ground_y = 380
 
     def draw(self, screen):
         screen.blit(self.transformed_image, self.rect)
@@ -21,21 +28,27 @@ class Character():
         self.rect.topleft = (x, y)
         self.update_hitbox()
 
-    def move(self, objects):
+    def move(self, objects, chest=None):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a]:
             self.rect.x -= 5
             self.update_hitbox()
             if self.check_collision(objects):
-                self.rect.x +=5
-                self.update_hitbox()
+                if chest and self.hitbox.colliderect(chest.rect):
+                    chest.push(-1)
+                else: 
+                    self.rect.x +=5
+                    self.update_hitbox()
 
         if keys[pygame.K_d]:
             self.rect.x += 5
             self.update_hitbox()
             if self.check_collision(objects):
-                self.rect.x -=5
-                self.update_hitbox()
+                if chest and self.hitbox.colliderect(chest.rect):
+                    chest.push(1)
+                else:
+                    self.rect.x -=5
+                    self.update_hitbox()
 
         if keys[pygame.K_w]:
             self.rect.y -= 5
@@ -50,6 +63,25 @@ class Character():
             if self.check_collision(objects):
                 self.rect.y -=5
                 self.update_hitbox()
+
+        #space for jump 
+        if keys[pygame.K_SPACE] and self.on_ground:
+            self.velocity_y = self.jump_power
+            self.on_ground = False
+
+        #gravity 
+        self.velocity_y += self.gravity
+        self.rect.y += self.velocity_y
+        self.update_hitbox
+
+        #collision ground 
+        if self.rect.bottom >= self.ground_y:
+            self.rect.bottom = self.ground_y
+            self.velocity_y = 0
+            self.on_ground = True
+
+        self.update_hitbox()
+
 
     def check_collision(self, objects):
         for obj in objects:
@@ -71,7 +103,7 @@ class Character():
             self.hitbox.left = 480
             self.rect.bottom = 480
 
-    def update(self, objects):
-        self.move(objects)
+    def update(self, objects, chest=None):
+        self.move(objects, chest)
         #self.update_hitbox()
         self.check_walls()

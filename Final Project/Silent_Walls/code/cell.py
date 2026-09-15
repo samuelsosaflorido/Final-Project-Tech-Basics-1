@@ -40,6 +40,8 @@ class Cell():
         self.chest = Chest(90, 260)
         self.chest_popup = ChestPopup()
 
+        self.medication = Medication(320, 170)
+
         #list of objects in cell, so that not every object has to be called upon itself
         self.objects = [self.table, self.toilet, self.chest, self.shackles, self.key, self.bed]
 
@@ -67,6 +69,9 @@ class Cell():
             else:
                 obj.draw(screen)
 
+        #draw medicine 
+        self.medication.draw(screen, show_hint=self.is_near(self.medication))
+
         #key
         if not self.key.collected and self.is_near(self.key):
             self.key.show_hint(screen)
@@ -77,8 +82,11 @@ class Cell():
 
     def update(self, events, inventory):
         self.character.update(self.objects)
-        #chest animation
 
+        if self.character.rect.bottom <= self.table.rect.top + 10:
+            self.medication.visible = True
+
+        #chest animation
         was_animate = self.chest.animate
         self.chest.update()
         if was_animate and not self.chest.animate:
@@ -92,16 +100,46 @@ class Cell():
             self.chest_popup.handle_input(event, inventory)
 
     def check_interaction(self, inventory):
+        #key
         if not self.key.collected and self.is_near(self.key):
             self.key.collected = True
             self.objects.remove(self.key)
             inventory.add_item("Key (Cell)")
             print("Key found!")
 
+        #open chest
         if not self.chest.is_open and self.is_near(self.chest) and not self.chest.animate:
             self.chest.open()
 
+        if not self.medication.collected and self.medication.visible and self.is_near(self.medication):
+            self.medication.collected = True
+            inventory.add_item("Medication (Cell)")
+            print("Medication found!")
 
+class Medication():
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.image = pygame.image.load("cell_medication.png").convert_alpha
+        self.image = pygame.transform.scale(self.image, (30, 30))
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.collected = False
+        self.visible = False
+        self.font = pygame.font.SysFont("Arial", 20)
+
+    def draw(self, screen, show_hint=False):
+        if not self.collected and self.visible:
+            screen.blit(self.image, self.rect)
+            pygame.draw.rect(screen, "red", self.rect, 2)
+            if show_hint:
+                self.show_hint(screen)  
+
+    def show_hint(self, screen):
+        hint = self.font.render("Press E to pick up", True, "white")
+        screen.blit(hint, (self.rect.x - 30, self.rect.y - 30))
+
+    def update(self):
+        pass 
 
 class Table():
     def __init__(self, x, y):
@@ -185,11 +223,20 @@ class Chest():
         self.is_open = False
         self.font = pygame.font.SysFont("Arial", 20)
 
+        #push chest
+        self.pushable = True 
+        self.push_speed = 3
+
         #Chest mini animation
         self.animate = False 
         self.animate_step = 0
         self.animate_timer = 0
         self.animate_delay = 300
+
+    def push(self, direction):
+        if self.pushable and not self.is_open:
+            self.rect.x += direction * self.push_speed
+            self.x = self.rect.x 
 
     def show_hint(self, screen):
         hint = self.font.render("Press E to open", True, "white")
