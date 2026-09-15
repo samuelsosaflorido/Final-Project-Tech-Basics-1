@@ -13,7 +13,7 @@ And welcome to.....!
 In this game you will have to escape from a prison, solve puzzles and try to find a way out
 You will explore different rooms through the entire gameplay, interact with different minigames within the game and find items that will help you escape. 
 The main concept of the game combines the scape room, with a horror aesthetic and elements, inspired by games such as Silent Hill 2, and other examples, like Pacman, as we will see later on.
-We also developed the art for the game, such as the environment, objects, items, NPCs, the character itself. 
+We also developed the art for the game, such as the environment, objects, items, NPCs, the character itself. For this we used Pixel Art 
 
 The story is also created by us :)
 
@@ -23,7 +23,11 @@ Additionally, we also added the click mouse (similar to other one-point-click ga
 We also added the TAB function for the inventory, the ESC button as well and the SPACE bar but mostly the movement is done with the arrow keys and using the mouse click 
 
 ### INSTALLATION
-Make sure to have the Python installed (of course). Our game does not require many other programs, apart from having pygame installed and the corresponding files that are in our repository 
+Make sure to have the Python installed (of course). Our game does not require many other programs, apart from having pygame installed. 
+
+To start our game: run silent_walls.py (our main file)!
+
+You will find more about the overall process in our Dokumentation.ipynb file
 
 #### GAMEPLAY AND LEVEL DESIGN 
 
@@ -37,5 +41,6 @@ The main rooms that you can see are the Cafeteria, the Cells and the Yard. Each 
 ##### STORY
 Well we're not spoiling anything so 
 
-Enjoy our game! 
+
+Enjoy the game! 
 
