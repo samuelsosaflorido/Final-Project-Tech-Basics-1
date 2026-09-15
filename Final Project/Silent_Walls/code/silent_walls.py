@@ -9,19 +9,20 @@ import pygame
 
 # import (from other files in our main file)
 from sys import *
-# from inventory import *
-# from maze import *
+from silent_walls_character import Character
+# from silent_walls_inventory import *
+# from silent_walls_maze import *
 # from hospital import *
 from cafeteria import *
 # from yard import *
 from cell import *
-from silent_walls_character import Character
 # from scipy._lib.pyprima.cobyla import update
 
 import os
 import sys
 
-# Setzt den Pfad immer relativ zur .py Datei
+
+
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # basic pygame-setup to run the game
@@ -31,22 +32,10 @@ clock = pygame.time.Clock()
 
 # make the window "pretty" (Name of the window)
 pygame.display.set_caption("silent walls")
-background = "gray"
-base_color = "black"
-
-
-base = pygame.Surface((980, 250))
-base.fill(base_color)
-
-#image = "pixil-frame-0(5).png"
-
-# your character
-# collision by Karo Fischer 
 
 
 
 # I got help from AI for the main Game Loop here
-
 # Basic Class for all the Rooms
 class Room:
     def __init__(self, name):
@@ -76,7 +65,7 @@ class SimpleRoom(Room):
         screen.fill(self.color)
         pygame.draw.rect(screen, (255, 0, 0), self.exits["maze"])
 
-# from the Maze to our Rooms
+# from the Maze into our Rooms
 class Maze(Room):
     def __init__(self):
         super().__init__("maze")
@@ -120,7 +109,7 @@ class Game:
         }
         self.maze = Maze()
 
-        # Startposition
+        # Start position
         self.current_state = "hospital"
         self.previous_room = "hospital"
 
@@ -185,8 +174,6 @@ while True:
             exit()
 
     game.update()
-    screen.fill((background))
-    screen.blit(base, (0, 230))
     game.draw(screen)
 
     pygame.display.update()

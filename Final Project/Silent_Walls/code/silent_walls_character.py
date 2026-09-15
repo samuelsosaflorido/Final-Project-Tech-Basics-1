@@ -1,3 +1,5 @@
+# the basic-character-code (example: movement) is from Kathi and the interaction-code is from Karo
+
 import pygame
 
 #Collision by Karo Fischer (help and explaintions by ChatAI Anthropic Claude Sonnet 4.6)
