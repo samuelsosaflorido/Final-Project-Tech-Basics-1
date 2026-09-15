@@ -5,7 +5,7 @@ We would like to present the readme of our game :)
 
 # SILENT WALLS 
 
-<img width="567" height="222" alt="image" src="https://github.com/user-attachments/assets/5a05657c-032f-4fee-88de-ffea409ff2d7" />
+           <img width="567" height="222" alt="image" src="https://github.com/user-attachments/assets/5a05657c-032f-4fee-88de-ffea409ff2d7" />
 
 
 Welcome to Silent Walls! In this game you will have to escape from a prison, solve puzzles and try to find a way out
