@@ -42,6 +42,9 @@ class Cell():
         self.chest = Chest(90, 260)
         self.chest_popup = ChestPopup()
 
+        self.on_chest = False
+        self.on_table = False
+
         self.medication = Medication(320, 170)
 
         #list of objects in cell, so that not every object has to be called upon itself
@@ -51,11 +54,44 @@ class Cell():
         self.background = pygame.image.load("cell_wall.png").convert_alpha()
         self.background = pygame.transform.scale(self.background, (980, 480))
 
+    #defs for fake jump (otherwise collison too complicated, doesn't work)
+    def is_next_to_chest(self):
+        return (self.character.hitbox.colliderect(
+            self.chest.rect.inflate(40, 0))
+            and not self.on_chest)
+
+    def is_next_to_table(self):
+        return (self.on_chest and 
+                self.character.hitbox.colliderect(
+                self.table.rect.inflate(60, 60)
+                ))
+
+    def jump_on_chest(self):
+        self.character.rect.bottom = self.chest.rect.top
+        self.character.rect.x = self.chest.rect.x
+        self.character.update_hitbox()
+        self.on_chest = True
+
+        if self.is_next_to_table():
+            self.medication.visible = True
+
+
+    def jump_down(self):
+        self.character.rect.bottom = 380
+        self.character.update_hitbox()
+        self.on_chest = False
+        self.on_table = False
 
     def is_near(self, obj, distance=80):
         return self.character.hitbox.colliderect(
             obj.rect.inflate(distance, distance)
         )
+
+    def pick_up_medication(self, inventory):
+        if not self.medication.collected and self.medication.visible:
+            self.medication.collected = True
+            inventory.add_item("Medication (Cell)")
+            print("Medication found!")
 
     def draw(self, screen):
         screen.blit(self.background, (0, 0))
@@ -74,6 +110,20 @@ class Cell():
         #draw medicine 
         self.medication.draw(screen, show_hint=self.is_near(self.medication))
 
+        font = pygame.font.SysFont("Arial", 20)
+
+        if self.is_next_to_chest():
+            hint = font.render("Space to jump", True, "white")
+            screen.blit(hint, (self.chest.rect.x - 30, self.chest.rect.y - 30))
+
+        if self.on_chest:
+            hint = font.render("S to jump down", True, "white")
+            screen.blit(hint, (200, 400))
+
+        if self.medication.visible and not self.medication.collected:
+            hint = font.render("F to pick up", True, "white")
+            screen.blit(hint, (self.medication.rect.x - 40, self.medication.rect.y -40))
+
         #key
         if not self.key.collected and self.is_near(self.key):
             self.key.show_hint(screen)
@@ -83,9 +133,9 @@ class Cell():
         self.chest_popup.draw(screen)
 
     def update(self, events, inventory):
-        self.character.update(self.objects)
+        self.character.update(self.objects, self.chest)
 
-        if self.character.rect.bottom <= self.table.rect.top + 10:
+        if self.on_chest and self.is_next_to_table():
             self.medication.visible = True
 
         #chest animation
@@ -98,6 +148,16 @@ class Cell():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_e:
                     self.check_interaction(inventory)
+
+                if event.key == pygame.K_f:
+                    self.pick_up_medication(inventory)
+
+                if event.key == pygame.K_SPACE:
+                    if self.is_next_to_chest():
+                        self.jump_on_chest()
+
+                if event.key == pygame.K_s and (self.on_chest or self.on_table):
+                    self.jump_down()
 
             self.chest_popup.handle_input(event, inventory)
 
@@ -113,16 +173,17 @@ class Cell():
         if not self.chest.is_open and self.is_near(self.chest) and not self.chest.animate:
             self.chest.open()
 
-        if not self.medication.collected and self.medication.visible and self.is_near(self.medication):
+        if not self.medication.collected and self.medication.visible:
             self.medication.collected = True
             inventory.add_item("Medication (Cell)")
             print("Medication found!")
+
 
 class Medication():
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.image = pygame.image.load("cell_medication.png").convert_alpha
+        self.image = pygame.image.load("cell_medication.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, (30, 30))
         self.rect = self.image.get_rect(topleft=(x, y))
         self.collected = False
@@ -227,7 +288,7 @@ class Chest():
 
         #push chest
         self.pushable = True 
-        self.push_speed = 3
+        self.push_speed = 5
 
         #Chest mini animation
         self.animate = False 
@@ -235,10 +296,23 @@ class Chest():
         self.animate_timer = 0
         self.animate_delay = 300
 
-    def push(self, direction):
+    def push(self, direction, speed=5, objects=[]):
         if self.pushable and not self.is_open:
-            self.rect.x += direction * self.push_speed
+            self.rect.x += direction * speed
             self.x = self.rect.x 
+
+            if self.rect.left < 0:
+                self.rect.left = 0
+                self.x = self.rect.x
+            if self.rect.right > 980:
+                self.rect.right = 980
+                self.x = self.rect.x
+
+            for obj in objects:
+                if obj != self and self.rect.colliderect(obj.rect):
+                    self.rect.x -= direction * speed
+                    self.x = self.rect.x
+                    self.pushable = False
 
     def show_hint(self, screen):
         hint = self.font.render("Press E to open", True, "white")

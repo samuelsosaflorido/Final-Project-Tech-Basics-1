@@ -32,25 +32,24 @@ class Character():
 
     def move(self, objects, chest=None):
         keys = pygame.key.get_pressed()
+
         if keys[pygame.K_a]:
             self.rect.x -= 5
             self.update_hitbox()
-            if self.check_collision(objects):
-                if chest and self.hitbox.colliderect(chest.rect):
-                    chest.push(-1)
-                else: 
-                    self.rect.x +=5
-                    self.update_hitbox()
+            if chest and self.hitbox.colliderect(chest.rect):
+                chest.push(-1, 5, objects)
+            elif self.check_collision(objects):
+                self.rect.x +=5
+                self.update_hitbox()
 
         if keys[pygame.K_d]:
             self.rect.x += 5
             self.update_hitbox()
-            if self.check_collision(objects):
-                if chest and self.hitbox.colliderect(chest.rect):
-                    chest.push(1)
-                else:
-                    self.rect.x -=5
-                    self.update_hitbox()
+            if chest and self.hitbox.colliderect(chest.rect):
+                chest.push(1, 5, objects)
+            elif self.check_collision(objects):
+                self.rect.x -=5
+                self.update_hitbox()
 
         if keys[pygame.K_w]:
             self.rect.y -= 5
@@ -66,21 +65,8 @@ class Character():
                 self.rect.y -=5
                 self.update_hitbox()
 
-        #space for jump 
-        if keys[pygame.K_SPACE] and self.on_ground:
-            self.velocity_y = self.jump_power
-            self.on_ground = False
-
-        #gravity 
-        self.velocity_y += self.gravity
-        self.rect.y += self.velocity_y
-        self.update_hitbox
-
-        #collision ground 
-        if self.rect.bottom >= self.ground_y:
-            self.rect.bottom = self.ground_y
-            self.velocity_y = 0
-            self.on_ground = True
+        if chest and self.hitbox.colliderect(chest.rect):
+                    chest.push(-1, 5, objects)
 
         self.update_hitbox()
 
