@@ -388,5 +388,4 @@ if __name__ == "__main__":
 
     pygame.quit()
 
-#Character.update()
 
