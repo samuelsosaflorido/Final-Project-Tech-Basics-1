@@ -7,15 +7,14 @@ We are Katharina Noske, Karoline Fischer and Samuel Domingo Sosa Florido
 And welcome to.....!
 
 
-<img width="567" height="222" alt="image" src="https://github.com/user-attachments/assets/b23ac44f-78b1-4d12-805b-114c4a17d643" />
+<img width="320" height="120" alt="silent_walls_start_frame" src="https://github.com/user-attachments/assets/08d2408c-d5b1-4565-a14d-dcc3e31200be" />
+
 
 # MAIN CONCEPT
-In this game you will have to escape from a prison, solve puzzles and try to find a way out
-You will explore different rooms through the entire gameplay, interact with different minigames within the game and find items that will help you escape. 
-The main concept of the game combines the scape room, with a horror aesthetic and elements, inspired by games such as Silent Hill 2, and other examples, like Pacman, as we will see later on.
-We also developed the art for the game, such as the environment, objects, items, NPCs, the character itself. For this we used Pixel Art 
-
-The story is also created by us :)
+In this game you will have to escape from a prison, solve some puzzles  and try to find a way out
+You will explore different rooms in which you will have to interact with different minigames within the game and find items that will help you escape. 
+The main concept of the game combines the idea of the escape room with an horror aesthetic and other references, inspired by other games as we will see later on.
+We also developed the art for the game, such as the environment, objects, items, NPCs, the character itself. For this we used Pixel Art :)
 
 ## CONTROLS 
 The movements and navigation through the game shall be done using the Key Arrows
@@ -33,7 +32,11 @@ You will find more about the overall process in our Dokumentation.ipynb file
 
 You will control a character who is trapped in a Prison. 
 You begin in the Hospital of the Prison. This area is important as it provides the clues to escape. After this, you will continue moving and find yourself into the Maze which will connect all the areas and allow the player to go through the entire area. 
-The Maze also has a small combat encounter done with the key arrows with a rat that is moving around the area, similar to the ghosts of Pacman. We also did some health bar for this part. 
+
+<img width="1226" height="501" alt="image" src="https://github.com/user-attachments/assets/cbd634b7-76c3-47d4-866a-017264b9269a" /> 
+
+The Maze also has a small combat encounter done with the key arrows with a rat that is moving around the area, similar to the ghosts of Pacman. We also did some health bar for this part using Pygame to make this area of the game a little bit more challenging 
+
 After this, the player will be able to choose which room should be firstly accessed
 The different endings of the game are according to the different items you encounter. All the rooms must be visited in order to escape as it is relevant. Depending on the items you collect, you will get a different ending.
 The main rooms that you can see are the Cafeteria, the Cells and the Yard. Each room contains the same items: keys, letters and other minigames that will give you another extra item. Collecting three pieces of these items will allow you to go back to the main room, the Hospital, which will allow you to escape. 
@@ -42,5 +45,6 @@ The main rooms that you can see are the Cafeteria, the Cells and the Yard. Each 
 Well we're not spoiling anything so 
 
 
-Enjoy the game! 
+Enjoy the Game! 
+
 
