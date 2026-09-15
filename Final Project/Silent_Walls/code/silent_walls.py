@@ -14,7 +14,7 @@ from silent_walls_character import Character
 # from silent_walls_maze import *
 # from hospital import *
 from cafeteria import *
-# from yard import *
+from yard import * 
 from cell import *
 # from scipy._lib.pyprima.cobyla import update
 
