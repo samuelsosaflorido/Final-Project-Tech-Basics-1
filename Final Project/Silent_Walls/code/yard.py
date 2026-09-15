@@ -3,12 +3,11 @@
 # So this is a demo of the yard I have made some dialogue and options and used the pixel art image that we showed during the presentation as a test
 # Okay I have changed a lot in relation to how the code was earlier. I had to use the videos cited in the documentation and also some Gemini help to get some feedback
 # It has been challenging in terms to understanding everything, writing everything and trying to comprehend the logic behind it
-# I also tried to make it more clean this time as last time was extremely chaotic and needed refinement 
+# I also tried to make it more clean this time as last time was extremely chaotic and needed refinement
 
 import math
 import os
 import pygame
-import silent_walls_inventory
 
 
 # Basic pygame setup
@@ -19,8 +18,6 @@ clock = pygame.time.Clock()
 WINDOW_WIDTH = 980
 WINDOW_HEIGHT = 480
 WORD_TO_GUESS = "AWAKENING"
-DIG_TARGET_X = 680
-DIG_TARGET_Y = 370
 
 
 # Base class for all interactable objects in the scene
@@ -44,19 +41,14 @@ class Weights(Object):
     def interact(self, yard):
         yard.show_note = True
         yard.has_letter_yard = True
-        yard.feedback_message = "You found 'Letter (Yard)'. It is covered in blood."
-        yard.feedback_timer = 150
+        yard.feedback_message = "You examine the weights and check the letter."
+        yard.feedback_timer = 120
 
 
 class Dumbbells(Object):
     def interact(self, yard):
-        if not yard.found_key_yard:
-            yard.found_key_yard = True
-            yard.feedback_message = "You have found 'Key (Yard)'. Maybe it can help you escape."
-            yard.feedback_timer = 150
-        else:
-            yard.feedback_message = "You already searched here. Nothing else is under the dumbbells."
-            yard.feedback_timer = 90
+        yard.feedback_message = "Heavy dumbbells covered in dust. Nothing else is under them."
+        yard.feedback_timer = 90
 
 
 class Gallows(Object):
@@ -135,7 +127,7 @@ class HangmanPuzzle:
             screen.blit(txt, (bx + 8, by + 6))
 
         if self.solved:
-            screen.blit(font.render("Skeleton Ghost of the Yard: 'You are worthy. Take the Spade.'", True, (212, 175, 55)), (box.x + 40, box.y + 195))
+            screen.blit(font.render("Skeleton Ghost of the Yard: 'You are worthy. Take the Medication.'", True, (212, 175, 55)), (box.x + 40, box.y + 195))
         elif self.failed:
             screen.blit(font.render("You have failed. Click Retry.", True, (200, 30, 35)), (box.x + 40, box.y + 195))
 
@@ -156,7 +148,7 @@ class Yard:
         self.dumbbell_layer = self._load_canvas_layer("yard_dumbbells.png", alpha=True)
         self.gallows_layer = self._load_canvas_layer("yard_gallows_pole.png", alpha=True)
 
-        # Skeleton ghost NPC - dimensions match original canvas drawing exactly, shifted forward
+        # Skeleton ghost NPC
         raw_ghost_path = os.path.join(self.base_dir, "yard_skeleton_ghost_npc.png")
         if os.path.exists(raw_ghost_path):
             raw_ghost = pygame.image.load(raw_ghost_path).convert_alpha()
@@ -166,6 +158,30 @@ class Yard:
             ghost_img.fill((180, 50, 60, 200))
 
         self.ghost = Object(530, 315, ghost_img, name="ghost")
+
+        # Key located within the floor. Had to use some help with Gemini 
+        raw_key_path = os.path.join(self.base_dir, "yard_key.png")
+        if os.path.exists(raw_key_path):
+            raw_key = pygame.image.load(raw_key_path).convert_alpha()
+            key_img = pygame.transform.scale(raw_key, (36, 36))
+        else:
+            key_img = pygame.Surface((36, 36), pygame.SRCALPHA)
+            key_img.fill((212, 175, 55))
+        self.key_prop = Object(160, 385, key_img, name="key")
+
+        # Carta (yard_letter.png): sprite pequeño para el suelo y grande para pop-up
+        raw_letter_path = os.path.join(self.base_dir, "yard_letter.png")
+        if os.path.exists(raw_letter_path):
+            raw_letter = pygame.image.load(raw_letter_path).convert_alpha()
+            letter_ground_img = pygame.transform.scale(raw_letter, (36, 28))
+            self.letter_img = pygame.transform.scale(raw_letter, (720, 360))
+        else:
+            letter_ground_img = pygame.Surface((36, 28), pygame.SRCALPHA)
+            letter_ground_img.fill((230, 220, 190))
+            self.letter_img = pygame.Surface((720, 360), pygame.SRCALPHA)
+            self.letter_img.fill((230, 220, 190))
+
+        self.letter_prop = Object(245, 385, letter_ground_img, name="letter_prop")
 
         # Interactive yard objects
         weights_surface = pygame.Surface((80, 80), pygame.SRCALPHA)
@@ -178,9 +194,6 @@ class Yard:
 
         self.interactive_props = [self.weights, self.dumbbells, self.gallows]
 
-        # Digging target zone near the gallows
-        self.dig_zone = pygame.Rect(DIG_TARGET_X - 40, DIG_TARGET_Y - 30, 90, 70)
-
         # Solid obstacles for feet collision
         self.obstacles = [
             pygame.Rect(75, 360, 70, 30),     # Weights base
@@ -192,33 +205,15 @@ class Yard:
         # Floor boundary: Character feet cannot walk into the wall above this line
         self.wall_limit_y = 370
 
-        # Item & interaction states matching standard item names
+        # Item & interaction states
         self.puzzle = HangmanPuzzle(WORD_TO_GUESS)
         self.state = "EXPLORE"
         self.show_note = False
         self.has_letter_yard = False
         self.found_key_yard = False
-        self.has_spade = False
         self.found_medication_yard = False
         self.feedback_message = ""
         self.feedback_timer = 0
-
-        # Riddle note contents
-        self.note_text = [
-            "Block B",
-            "",
-            "Seven crows stare from the wired fence...",
-            "Two big towers staring at the cursed one...",
-            "Only five minutes before the accursed judgement",
-            "I still remember that cursed day",
-            "I am so sorry. I could have saved you...",
-            "I cannot stand this agony",
-            "The sorrow, the pain watching you slowly fade away",
-            "",
-            "Forgive me.                          -S",
-            "",
-            "[Click anywhere to close]"
-        ]
 
         # Buttons
         self.dialogue_btn1 = pygame.Rect(0, 0, 0, 0)
@@ -255,7 +250,7 @@ class Yard:
         player_x = self.your_character.rect.centerx
         player_y = self.your_character.rect.centery
 
-        # Close note if open
+        # For the letter 
         if self.show_note:
             self.show_note = False
             return
@@ -267,7 +262,7 @@ class Yard:
                     if r.collidepoint(mouse_pos):
                         self.puzzle.guess(char)
                         if self.puzzle.solved:
-                            self.has_spade = True
+                            self.found_medication_yard = True
                         break
 
             if self.puzzle.failed and self.puzzle_retry_btn.collidepoint(mouse_pos):
@@ -291,23 +286,27 @@ class Yard:
 
         # Handle exploration clicks
         if self.state == "EXPLORE":
-            # Digging spot near the gallows
-            if self.dig_zone.collidepoint(mouse_pos):
-                dist = math.hypot(self.dig_zone.centerx - player_x, self.dig_zone.centery - player_y)
-                if dist < 130:
-                    if self.has_spade:
-                        if not self.found_medication_yard:
-                            self.found_medication_yard = True
-                            self.feedback_message = "You dug up the soft earth and found 'Medication (Yard)'!"
-                            self.feedback_timer = 160
-                        else:
-                            self.feedback_message = "You already unearthed 'Medication (Yard)' from this spot."
-                            self.feedback_timer = 90
-                    else:
-                        self.feedback_message = "The dirt looks disturbed here, but you need a Spade to dig."
-                        self.feedback_timer = 110
+            if not self.found_key_yard and self.key_prop.rect.collidepoint(mouse_pos):
+                dist = math.hypot(self.key_prop.rect.centerx - player_x, self.key_prop.rect.centery - player_y)
+                if dist < 120:
+                    self.found_key_yard = True
+                    self.feedback_message = "You have picked up 'Key (Yard)'!"
+                    self.feedback_timer = 150
                 else:
-                    self.feedback_message = "You need to come closer as there is something interesting here"
+                    self.feedback_message = "You need to come closer to pick up the key"
+                    self.feedback_timer = 90
+                return
+
+            # Obtaining the key 
+            if not self.has_letter_yard and self.letter_prop.rect.collidepoint(mouse_pos):
+                dist = math.hypot(self.letter_prop.rect.centerx - player_x, self.letter_prop.rect.centery - player_y)
+                if dist < 120:
+                    self.has_letter_yard = True
+                    self.show_note = True
+                    self.feedback_message = "You picked up and read 'Letter (Yard)'."
+                    self.feedback_timer = 150
+                else:
+                    self.feedback_message = "You need to come closer to pick up the letter"
                     self.feedback_timer = 90
                 return
 
@@ -315,8 +314,8 @@ class Yard:
             if self.ghost.rect.collidepoint(mouse_pos):
                 dist = math.hypot(self.ghost.rect.centerx - player_x, self.ghost.rect.centery - player_y)
                 if dist < 140:
-                    if self.has_spade:
-                        self.feedback_message = "The Skeleton Ghost watches quietly. You already obtained the Spade."
+                    if self.found_medication_yard:
+                        self.feedback_message = "The Skeleton Ghost watches quietly. You already proved your worth."
                         self.feedback_timer = 110
                     else:
                         self.state = "DIALOGUE"
@@ -326,7 +325,7 @@ class Yard:
                     self.feedback_timer = 90
                 return
 
-            # Yard props
+            # 4. Yard props (si haces clic en las pesas se vuelve a leer la carta)
             for prop in self.interactive_props:
                 if prop.rect.collidepoint(mouse_pos):
                     dist = math.hypot(prop.rect.centerx - player_x, prop.rect.centery - player_y)
@@ -338,26 +337,32 @@ class Yard:
                     break
 
     def handle_key(self, event):
-        # Keyboard letter input directly for the Hangman mini-game
         if self.puzzle.is_open and not self.puzzle.solved and not self.puzzle.failed:
             if pygame.K_a <= event.key <= pygame.K_z:
                 char = chr(event.key).upper()
                 self.puzzle.guess(char)
                 if self.puzzle.solved:
-                    self.has_spade = True
+                    self.found_medication_yard = True
 
     def update(self):
         if self.feedback_timer > 0:
             self.feedback_timer -= 1
 
     def draw(self, screen):
-        # Draw background and environment layers
         screen.blit(self.bg, (0, 0))
         screen.blit(self.weights_layer, (0, 0))
         screen.blit(self.dumbbell_layer, (0, 0))
         screen.blit(self.gallows_layer, (0, 0))
 
-        # Drawing the ghost and character in correct depth order
+        # This is basically when you don't take the key so it draws itself
+        if not self.found_key_yard:
+            self.key_prop.draw(screen)
+
+        # The letter will only appear on the floor if it has not been taken 
+        if not self.has_letter_yard:
+            self.letter_prop.draw(screen)
+
+        # Character screen definition using conditional statements for this 
         if self.your_character.rect.bottom < self.ghost.rect.bottom:
             self.your_character.draw(screen)
             self.ghost.draw(screen)
@@ -365,24 +370,26 @@ class Yard:
             self.ghost.draw(screen)
             self.your_character.draw(screen)
 
-        # Draw feedback text
+        # Feedback textual
         if self.feedback_timer > 0:
             txt = self.small_font.render(self.feedback_message, True, (212, 175, 55))
             screen.blit(txt, (WINDOW_WIDTH // 2 - txt.get_width() // 2, 440))
 
-        # Draw note overlay
+        # Rendering the text with a big screen 
         if self.show_note:
-            box = pygame.Rect(260, 60, 460, 360)
-            pygame.draw.rect(screen, (235, 225, 200), box)
-            pygame.draw.rect(screen, (140, 20, 25), box, 2)
+            overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 185))
+            screen.blit(overlay, (0, 0))
 
-            curr_y = box.y + 15
-            for line in self.note_text:
-                txt = self.small_font.render(line, True, (30, 20, 25))
-                screen.blit(txt, (box.x + 25, curr_y))
-                curr_y += 22
+            if self.letter_img:
+                lx = WINDOW_WIDTH // 2 - self.letter_img.get_width() // 2
+                ly = WINDOW_HEIGHT // 2 - self.letter_img.get_height() // 2
+                screen.blit(self.letter_img, (lx, ly))
 
-        # Draw dialogue box
+            hint = self.small_font.render("[Click anywhere to close]", True, (220, 215, 200))
+            screen.blit(hint, (WINDOW_WIDTH // 2 - hint.get_width() // 2, 435))
+
+        # Dialogue options with the Skeleton Ghost 
         elif self.state == "DIALOGUE":
             node = self.dialogue_nodes[self.current_dialogue]
             box = pygame.Rect(140, 320, 700, 130)
@@ -402,7 +409,7 @@ class Yard:
             screen.blit(txt1, (self.dialogue_btn1.x + 10, self.dialogue_btn1.y + 8))
             screen.blit(txt2, (self.dialogue_btn2.x + 10, self.dialogue_btn2.y + 8))
 
-        # Draw hangman puzzle overlay
+        # Hangman's interface 
         if self.puzzle.is_open:
             self.puzzle.draw(screen, self.small_font, self.big_font)
             self.puzzle_exit_btn = pygame.Rect(720, 330, 80, 28)
@@ -501,34 +508,18 @@ yard = Yard(player)
 
 running = True
 while running:
-    inventory_open = getattr(silent_walls_inventory, "is_open", False)
-
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
         elif event.type == pygame.KEYDOWN:
-            # TAB key toggles inventory open/closed
-            if event.key == pygame.K_TAB:
-                if hasattr(silent_walls_inventory, "toggle"):
-                    silent_walls_inventory.toggle()
-                elif hasattr(silent_walls_inventory, "is_open"):
-                    silent_walls_inventory.is_open = not silent_walls_inventory.is_open
-            else:
-                # Only pass keys to Yard (Hangman typing) if inventory is closed
-                if not inventory_open:
-                    yard.handle_key(event)
+            yard.handle_key(event)
 
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            # Route mouse clicks to inventory if open, else to yard exploration
-            if inventory_open:
-                if hasattr(silent_walls_inventory, "handle_click"):
-                    silent_walls_inventory.handle_click(event.pos)
-            else:
-                yard.handle_click(event.pos)
+            yard.handle_click(event.pos)
 
-    # Move player only when not paused by dialogue, note, puzzle, or open inventory
-    if yard.state == "EXPLORE" and not yard.puzzle.is_open and not yard.show_note and not inventory_open:
+    # Move player only when not paused by dialogue, note or puzzle
+    if yard.state == "EXPLORE" and not yard.puzzle.is_open and not yard.show_note:
         player.move(yard.obstacles, yard.wall_limit_y)
 
     player.update()
@@ -536,10 +527,6 @@ while running:
 
     # Base scene rendering
     yard.draw(screen)
-
-    # Render inventory overlay on top of everything when open
-    if inventory_open and hasattr(silent_walls_inventory, "draw"):
-        silent_walls_inventory.draw(screen)
 
     pygame.display.flip()
     clock.tick(60)
