@@ -35,10 +35,9 @@ You begin in the Hospital of the Prison. This area is important as it provides t
 
 The Maze also has a small combat encounter done with the key arrows with a rat that is moving around the area, similar to the ghosts of Pacman. We also did some health bar for this part using Pygame to make this area of the game a little bit more challenging 
 
-After this, the player will be able to choose which room should be firstly accessed
-The different endings of the game are according to the different items you encounter. All the rooms must be visited in order to escape as it is relevant. Depending on the items you collect, you will get a different ending.
-The main rooms that you can see are the Cafeteria, the Cells and the Yard. Each room contains the same items: keys, letters and other minigames that will give you another extra item. Collecting three pieces of these items will allow you to go back to the main room, the Hospital, which will allow you to escape. 
+After this, the player will be able to choose which room should be the first one. You can find the Cafeteria, the Cells and the Yard. Each room contains the similar items: keys, letters and the medication. There are in total three pieces of each item spread through the different rooms. So you will have to navigate, explore, interact and solve the puzzles in order to escape. Depending on the items you collect, you will get a different ending. Which...could be good or maybe bad? 
 
+It is your choice to decide your fate
 
 Enjoy the Game! 
 
