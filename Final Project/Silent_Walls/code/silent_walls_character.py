@@ -12,7 +12,6 @@ class Character():
 
     def draw(self, screen):
         screen.blit(self.transformed_image, self.rect)
-        pygame.draw.rect(screen, "red", self.hitbox, 2)
 
     def update_hitbox(self):
         self.hitbox.x = self.rect.x + 25
