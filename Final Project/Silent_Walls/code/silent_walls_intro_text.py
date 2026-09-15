@@ -1,15 +1,17 @@
 # The text to begin the adventure done by Samuel Domingo Sosa Florido
 # Created the narrative elements for the text that needs to be shown after the main screen after the player clicks to start playing
 
+# start_text.py
+# by Samuel Domingo Sosa Florido
+
 import sys
 import pygame
 
 
-def show_start_screen(screen, clock):
-    font = pygame.font.Font(None, 28)
-    font_hint = pygame.font.Font(None, 24)
+def show_intro_text(text, clock):
+    font = pygame.font.Font(None, 26)
+    font_hint = pygame.font.Font(None, 20)
 
-    # Intro text message for when the game begins
     lines = [
         "You wake up in a strange prison",
         "You don't remember how you came here",
@@ -19,37 +21,68 @@ def show_start_screen(screen, clock):
         "Find the way out.",
     ]
 
-    waiting = True
-    while waiting:
+    line_idx = 0
+    char_idx = 0
+    text_timer = 0
+    TEXT_SPEED = 2
+    PAUSE_LINE = 35
+    pause_timer = 0
+    finished = False
+
+    while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+            if event.type in (pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN):
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
-                if event.key in (pygame.K_SPACE, pygame.K_RETURN):
-                    waiting = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                waiting = False
+
+                if not finished:
+                    line_idx = len(lines)
+                    finished = True
+                else:
+                    return
+
+        if not finished:
+            if pause_timer > 0:
+                pause_timer -= 1
+            else:
+                text_timer += 1
+                if text_timer >= TEXT_SPEED:
+                    text_timer = 0
+                    char_idx += 1
+
+                    if char_idx > len(lines[line_idx]):
+                        line_idx += 1
+                        char_idx = 0
+                        pause_timer = PAUSE_LINE
+                        if line_idx >= len(lines):
+                            finished = True
 
         screen.fill((0, 0, 0))
 
-        # This is for painting the centered text
-        y = 90
-        for line in lines:
-            text_surf = font.render(line, True, (200, 200, 200))
-            x = screen.get_width() // 2 - text_surf.get_width() // 2
-            screen.blit(text_surf, (x, y))
-            y += 35
+        y = 70
+        for i in range(min(line_idx, len(lines))):
+            surf = font.render(lines[i], True, (210, 210, 210))
+            x = screen.get_width() // 2 - surf.get_width() // 2
+            screen.blit(surf, (x, y))
+            y += 34
 
-        # Hint to continue the game
-        hint_surf = font_hint.render(
-            "[ Click anywhere with the mouse to start ]", True, (130, 130, 130)
-        )
-        hint_x = screen.get_width() // 2 - hint_surf.get_width() // 2
-        screen.blit(hint_surf, (hint_x, 340))
+        if not finished and line_idx < len(lines):
+            curr_text = lines[line_idx][:char_idx]
+            surf = font.render(curr_text, True, (245, 245, 245))
+            x = screen.get_width() // 2 - surf.get_width() // 2
+            screen.blit(surf, (x, y))
+
+        if finished:
+            hint = font_hint.render(
+                "[ Click or press Space to start ]", True, (100, 100, 100)
+            )
+            screen.blit(
+                hint, (screen.get_width() // 2 - hint.get_width() // 2, 350)
+            )
 
         pygame.display.flip()
         clock.tick(60)
