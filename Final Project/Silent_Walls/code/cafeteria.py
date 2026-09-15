@@ -1,4 +1,4 @@
-# Cafeteria = Room from Kathi
+# Cafeteria = Room by Kathi
 import objects
 # I did draw all images by myself except for the background wall - the background is from Karo
 

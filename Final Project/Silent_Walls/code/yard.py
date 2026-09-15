@@ -1,4 +1,4 @@
-# Yard = Room from Samuel
+# Yard = Room by Samuel
 
 # So this is a demo of the yard I have made some dialogue and options and used the pixel art image that we showed during the presentation as a test
 # Okay I have changed a lot in relation to how the code was earlier. I had to use the videos cited in the documentation and also some Gemini help to get some feedback

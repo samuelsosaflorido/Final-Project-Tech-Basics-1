@@ -1,8 +1,9 @@
-# the basic-character-code (example: movement) is from Kathi and the interaction-code is from Karo
+# the basic-character-code (example: movement) is by Kathi and the interaction-code is by Karo
 
 import pygame
 
 #Collision by Karo Fischer (help and explanations by ChatAI Anthropic Claude Sonnet 4.6)
+#also code for room "cell" by Karo 
 class Character():
     def __init__(self, x, y):
         self.x = x

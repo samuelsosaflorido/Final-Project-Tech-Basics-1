@@ -1,7 +1,6 @@
 # Cell = Room from Karo
 
 import pygame
-import random
 
 import os
 import sys

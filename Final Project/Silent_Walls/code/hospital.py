@@ -1,4 +1,4 @@
-# the basic room code is from Kathi
+# the basic room code is by Kathi
 
 import pygame
 from silent_walls_character import *
