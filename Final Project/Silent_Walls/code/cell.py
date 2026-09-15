@@ -77,13 +77,19 @@ class Cell():
 
     def update(self, events, inventory):
         self.character.update(self.objects)
+        #chest animation
+
+        was_animate = self.chest.animate
+        self.chest.update()
+        if was_animate and not self.chest.animate:
+            self.chest_popup.show()
 
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_e:
                     self.check_interaction(inventory)
 
-            self.chest_popup.handle_input(event)
+            self.chest_popup.handle_input(event, inventory)
 
     def check_interaction(self, inventory):
         if not self.key.collected and self.is_near(self.key):
@@ -92,11 +98,8 @@ class Cell():
             inventory.add_item("Key (Cell)")
             print("Key found!")
 
-        if not self.chest.is_open and self.is_near(self.chest):
+        if not self.chest.is_open and self.is_near(self.chest) and not self.chest.animate:
             self.chest.open()
-            if self.chest.open():
-                self.chest.open2()
-                self.chest_popup.show()
 
 
 
@@ -182,24 +185,46 @@ class Chest():
         self.is_open = False
         self.font = pygame.font.SysFont("Arial", 20)
 
-    def draw(self, screen, show_hint=False):
-        screen.blit(self.image, self.rect)
-        pygame.draw.rect(screen, "red", self.rect, 2)
-
-        if show_hint and not self.is_open:
-            self.show_hint(screen)
+        #Chest mini animation
+        self.animate = False 
+        self.animate_step = 0
+        self.animate_timer = 0
+        self.animate_delay = 300
 
     def show_hint(self, screen):
         hint = self.font.render("Press E to open", True, "white")
         screen.blit(hint, (self.rect.x - 30, self.rect.y - 30))
 
     def open(self):
-        self.is_open = True
+        self.animate = True
+        self.animate_step = 1
         self.image = self.image_open1
-        self.image_open1 = self.image_open2
+        self.animate_timer = pygame.time.get_ticks()
 
     def update(self):
-        pass 
+        if self.animate:
+            now = pygame.time.get_ticks()
+
+            #Frame1
+            if self.animate_step == 1:
+                #self.rect = self.image.get_rect(topleft=(self.x, self.y - 10))
+                if now - self.animate_timer > self.animate_delay:
+                    self.animate_step = 2
+                    self.image = self.image_open2
+                    self.rect = self.image.get_rect(topleft=(self.x, self.y - 30))
+                    self.animate_timer = now
+
+            elif self.animate_step == 2:
+                if now - self.animate_timer > self.animate_delay:
+                    self.animate = False
+                    self.is_open = True
+
+    def draw(self, screen, show_hint=False):
+            screen.blit(self.image, self.rect)
+            pygame.draw.rect(screen, "red", self.rect, 2)
+    
+            if show_hint and not self.is_open and not self.animate:
+                self.show_hint(screen)
 
 
 class ChestPopup():
@@ -207,38 +232,118 @@ class ChestPopup():
         self.active = False
         self.image = pygame.image.load("cell_chest_inside.png").convert_alpha()  # ← Bild von innen
         self.image = pygame.transform.scale(self.image, (400, 300))
-        self.font = pygame.font.SysFont("Arial", 20)
+        self.font = pygame.font.SysFont("Arial", 24)
+        self.small_font = pygame.font.SysFont ("Arial", 18)
+
+        self.color_boxes = [
+            (255, 130, 171), #rot 
+            (152, 255, 152), #grün
+            (0, 191, 255), #blau
+        ]
+
+        self.input_boxes = ["", "", ""]
+        self.selected_box = 0
+        self.correct_answers = ["7", "3", "4"]
+        self.solved = False
+        self.code = "734"
+        self.show_code = False
 
     def show(self):
         self.active = True
+        self.input_boxes = ["", "", ""]
+        self.selected_box = 0
+        self.show_code = False
 
     def close(self):
         self.active = False
+
+    def check_answers(self):
+        for i, answer in enumerate(self.correct_answers):
+            if self.input_boxes[i] != answer:
+                return False 
+        return True
 
     def draw(self, screen):
         if not self.active:
             return
         
-        # Dunkler Hintergrund
+        #dark background
         overlay = pygame.Surface((980, 480), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 180))
         screen.blit(overlay, (0, 0))
         
-        # Bild der Kiste von innen zentriert
-        x = (980 - 400) // 2
-        y = (480 - 300) // 2
-        screen.blit(self.image, (x, y))
-        
+        #background of popup
+        popup_x = (980 - 400) // 2
+        popup_y = (480 - 300) // 2
+        screen.blit(self.image, (popup_x, popup_y))
+
+        box_size = 60
+        gap = 20
+
+        #boxes width
+        total_width = 3 * box_size + 2 * gap
+        start_x = popup_x + 400
+
+        #colors upper boxes
+        upper_y = popup_y + 60
+        for i, color in enumerate(self.color_boxes):
+            x = start_x + i * (box_size + gap)
+            pygame.draw.rect(screen, color, (x, upper_y, box_size, box_size))
+            pygame.draw.rect(screen, "white", (x, upper_y, box_size, box_size), 2)
+
+        lower_y = upper_y + box_size + 40
+        for i in range(3):
+            x = start_x + i * (box_size + gap)
+
+            border_color = "yellow" if i == self.selected_box else "white"
+            pygame.draw.rect(screen, (30, 30, 30), (x, lower_y, box_size, box_size))
+            pygame.draw.rect(screen, border_color, (x, lower_y, box_size, box_size), 2)
+
+            if self.input_boxes[i]:
+                number = self.font.render(self.input_boxes[i], True, "white")
+                number_x = x + (box_size - number.get_width()) // 2
+                number_y = lower_y + (box_size - number.get_height()) // 2
+                screen.blit(number, (number_x, number_y)) 
+
+        hint = self.small_font.render("Zahlen eingeben, TAB zum Wechseln, ENTER zum Bestätigen", True, "white")
+        screen.blit(hint, (popup_x + 20, popup_y + 340))
+
+        if self.show_code:
+            code_text = self.font.render(f"Code: {self.code}", True, "yellow")
+            screen.blit(code_text, (popup_x + 600//2 - code_text.get_width()//2, popup_y + 300))
+
+        esc_hint = self.small_font.render("ESC zum Schließen", True, "gray")
+        screen.blit(esc_hint, (popup_x + 20, popup_y + 370))
+
         # Schließen Hinweis
         hint = self.font.render("ESC to close", True, "white")
-        screen.blit(hint, (x + 10, y + 270))
+        screen.blit(esc_hint, (popup_x + 20, popup_y + 370))
 
-    def handle_input(self, event):
+    def handle_input(self, event, inventory):
         if not self.active:
             return
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 self.close()
+
+            elif event.key == pygame.K_TAB:
+                self.selected_box = (self.selected_box + 1) %3
+
+            elif event.key == pygame.K_RETURN:
+                if not self.solved and self.check_answers():
+                    self.solved = True
+                    self.show_code = True
+                    inventory.add_item("Letter (Cell)")
+                    print(f"You solved it! Code: {self.code}")
+
+            elif event.key == pygame.K_BACKSPACE:
+                self.input_boxes[self.selected_box] = ""
+
+            elif event.unicode.isdigit():
+                self.input_boxes[self.selected_box] = event.unicode
+                #automatically to the next box
+                if self.selected_box < 2:
+                    self.selected_box += 1 
 
 class Shackles():
     def __init__(self, x, y):
