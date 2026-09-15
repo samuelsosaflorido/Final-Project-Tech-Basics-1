@@ -1,13 +1,11 @@
-
-
 Hello! 
 
 We are Katharina Noske, Karoline Fischer and Samuel Domingo Sosa Florido
 
 And welcome to.....!
 
+<img width="1542" height="577" alt="image" src="https://github.com/user-attachments/assets/77cd3a48-a3f1-45b6-a556-cf41e82a239f" />
 
-<img width="320" height="120" alt="silent_walls_start_frame" src="https://github.com/user-attachments/assets/08d2408c-d5b1-4565-a14d-dcc3e31200be" />
 
 
 # MAIN CONCEPT
