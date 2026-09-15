@@ -1,10 +1,10 @@
 
 
-Hello! Welcome to Silent Walls! 
+Hello! 
 
 We are Katharina Noske, Karoline Fischer and Samuel Domingo Sosa Florido
 
-We would like to present some of the main ideas and mechanics of our game :) 
+And welcome to.....!
 
 # SILENT WALLS 
 
