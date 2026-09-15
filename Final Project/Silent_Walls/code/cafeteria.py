@@ -1,86 +1,176 @@
+# Cafeteria = Room from Kathi
+import objects
+# I did draw all images by myself except for the background wall - the background is from Karo
+
 import pygame
+from silent_walls_character import *
 
-class Chair():
-    def __init__(self, x, y, image):
-        self.x = x
-        self.y = y
-        self.image = image
-        self.rect = self.image.get_rect(topleft= (x, y))
-
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
-
-    def update(self):
-        pass
-
-class Table():
-    def __init__(self, x, y, image):
-        self.x = x
-        self.y = y
-        self.image = image
-        self.rect = self.image.get_rect(topleft= (x, y))
-
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
-
-    def update(self):
-        pass
-
-class Meal():
-    def __init__(self, x, y, image):
-        self.x = x
-        self.y = y
-        self.image = image
-        self.rect = self.image.get_rect(topleft= (x, y))
-
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
-
-    def update(self):
-        pass
-
+pygame.init()
+pygame.font.init()
+FONT = pygame.font.SysFont("Arial", 24)
 
 
 class Cafeteria():
-    def __init__(self, your_character):
-        self.your_character = your_character
-        self.table_x = 500
-        self.table_y = 300
-        self.completed = False
+    def __init__(self):
+        # Positionen und Größen angepasst (Beispielwerte – gerne weiter anpassen)
+        self.food = Food(530, 190)
+        self.table1 = Table1(50, 330)
+        self.table2 = Table2(300, 220)
+        self.trash = Trash(830, 270)
+        self.letter = Letter(730, 220)     # on the Table with the Letter
+        self.key = Key(50, 10)             # in the Trash
+        self.medicine = Medicine(600, 90)  # the Skeleton has the medicine
+
+        # Zustände / Sichtbarkeit
+        self.letter_visible = False
+        self.key_found = False
+        self.medicine_given = False
+
+        # Skelett-Dialog (Frage-Antwort-System)
+        self.talking_to_skeleton = False
+        self.question_answered = False
+        self.question = "Germans are known for the love for bread, but how many types of bread do they have?"
+        self.answers = ["more than 2.200", "more than 3.200", "more than 4.200"]
+        self.correct_answer_index = 1  # the correct answer: "more than 3.200"
+
+        self.objects_always = [self.food, self.table1, self.table2, self.trash]
+
+        self.background = pygame.image.load("cell_wall.png").convert_alpha()
+        self.background = pygame.transform.scale(self.background, (980, 480))
 
     def draw(self, screen):
-        background = "gray"
-        base_color = "black"
+        screen.blit(self.background, (0, 0))
 
-        base = pygame.Surface((980, 250))
-        base.fill(base_color)
+        for obj in self.objects_always:
+            obj.draw(screen)
 
-        # table
+        if self.letter_visible:
+            self.letter.draw(screen)
 
-        table = pygame.image.load("silent_walls_character.png").convert_alpha()
+        if self.key_found:
+            self.key.draw(screen)
 
-        # define a new width and height for the table
-        new_width_table = 70
-        new_height_table = 80
+        if self.medicine_given:
+            self.medicine.draw(screen)
 
-        # meal service
+        if self.talking_to_skeleton and not self.question_answered:
+            self.draw_question(screen)
 
-        meal_service = pygame.image.load("silent_walls_character.png").convert_alpha()
+    # AI helped me here
+    def draw_question(self, screen):
+        overlay = pygame.Surface((980, 480), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 180))
+        screen.blit(overlay, (0, 0))
 
-        # define a new width and height for the meal_service
-        new_width_meal_service = 90
-        new_height_meal_service = 120
+        question_surface = FONT.render(self.question, True, (255, 255, 255))
+        screen.blit(question_surface, (300, 150))
 
-        # update the new scaled image of your_character
-        meal_service = pygame.transform.scale(meal_service, (new_width_meal_service, new_height_meal_service))
-        meal_service_rect = meal_service.get_rect(topleft=(200, 130))
+        for i, answer in enumerate(self.answers):
+            answer_surface = FONT.render(f"{i + 1}: {answer}", True, (255, 255, 0))
+            screen.blit(answer_surface, (300, 200 + i * 40))
 
-        # basic background color (to draw over - blanc canvas to start with / reset the background at every frame)
-        screen.fill((background))
+    def update(self, character, events):
+        mouse_pos = pygame.mouse.get_pos()
 
-        # put the separated game sections together
-        screen.blit(base, (0, 230))
-        screen.blit(meal_service, meal_service_rect)
+        for event in events:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # Show Letter: Character touches Table2 AND pressed the mouse
+                if character.rect.colliderect(self.table2.rect) and self.table2.rect.collidepoint(mouse_pos):
+                    self.letter_visible = True
 
-    def update(self):
-        pass
+                # Finding the key: Character touches the Trash AND pressed the mouse
+                if character.rect.colliderect(self.trash.rect) and self.trash.rect.collidepoint(mouse_pos):
+                    if not self.key_found:
+                        self.key_found = True
+                        character.inventory.append("key")
+
+                # Talk to the Skeleton: Character touches Food AND pressed the mouse
+                if character.rect.colliderect(self.food.rect) and self.food.rect.collidepoint(mouse_pos):
+                    if not self.medicine_given:
+                        self.talking_to_skeleton = True
+
+            if event.type == pygame.KEYDOWN and self.talking_to_skeleton and not self.question_answered:
+                if event.key == pygame.K_1:
+                    self.check_answer(0, character)
+                elif event.key == pygame.K_2:
+                    self.check_answer(1, character)
+                elif event.key == pygame.K_3:
+                    self.check_answer(2, character)
+
+    def check_answer(self, index, character):
+        if index == self.correct_answer_index:
+            self.question_answered = True
+            self.medicine_given = True
+            character.inventory.append("medicine")
+        self.talking_to_skeleton = False
+
+
+class Food():
+    def __init__(self, x, y):
+        self.image = pygame.image.load("cafeteria_food.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (290, 170))
+        self.rect = self.image.get_rect(topleft=(x, y))
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+
+class Table1():
+    def __init__(self, x, y):
+        self.image = pygame.image.load("cafeteria_table.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (200, 150))
+        self.rect = self.image.get_rect(topleft=(x, y))
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+
+class Table2():
+    def __init__(self, x, y):
+        self.image = pygame.image.load("cafeteria_table_with_letter.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (200, 150))
+        self.rect = self.image.get_rect(topleft=(x, y))
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+
+class Trash():
+    def __init__(self, x, y):
+        self.image = pygame.image.load("cafeteria_trash.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (120, 120))
+        self.rect = self.image.get_rect(topleft=(x, y))
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+
+class Letter():
+    def __init__(self, x, y):
+        self.image = pygame.image.load("cafeteria_letter.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (150, 400))
+        self.rect = self.image.get_rect(topleft=(x, y))
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+
+class Key():
+    def __init__(self, x, y):
+        self.image = pygame.image.load("cafeteria_key.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (100, 100))
+        self.rect = self.image.get_rect(topleft=(x, y))
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+
+
+class Medicine():
+    def __init__(self, x, y):
+        self.image = pygame.image.load("cafeteria_medicine.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (100, 100))
+        self.rect = self.image.get_rect(topleft=(x, y))
+
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
+

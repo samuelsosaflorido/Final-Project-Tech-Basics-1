@@ -15,7 +15,7 @@ from sys import *
 from cafeteria import *
 # from yard import *
 from cell import *
-from character import Character
+from silent_walls_character import Character
 # from scipy._lib.pyprima.cobyla import update
 
 import os
@@ -82,14 +82,12 @@ class Maze(Room):
         super().__init__("maze")
         self.entry_pos = (50, 200)
 
-        # 3 feste Positionen im Maze
         self.exit_rects = {
             "exit_1": pygame.Rect(900, 50, 40, 40),
             "exit_2": pygame.Rect(900, 200, 40, 40),
             "exit_3": pygame.Rect(900, 350, 40, 40),
         }
 
-        # hier steht, welcher Raum hinter exit_1/2/3 liegt
         self.destinations = []
 
     def set_destinations(self, destinations):
@@ -122,16 +120,14 @@ class Game:
         }
         self.maze = Maze()
 
-        # Startzustand: Spieler beginnt in der Zelle
-        self.current_state = "cell"
-        self.previous_room = "cell"  # merkt sich, woher der Spieler zuletzt kam
+        # Startposition
+        self.current_state = "hospital"
+        self.previous_room = "hospital"
 
     def enter_maze(self, coming_from):
-        """berechnet die 3 Ausgänge des Maze je nachdem, aus welchem Raum man kommt"""
-        if coming_from == "cell":
-            destinations = ["hospital", "cafeteria", "yard"]
+        if coming_from == "hospital":
+            destinations = ["cell", "cafeteria", "yard"]
         else:
-            # Startraum + die beiden anderen Räume (außer dem aktuellen)
             destinations = [r for r in self.ALL_ROOMS if r != coming_from]
 
         self.maze.set_destinations(destinations)
@@ -196,25 +192,6 @@ while True:
     pygame.display.update()
     # limits FPS to 60
     clock.tick(60)
-
-    #character.draw(screen)
-    
-
-
-    #character.move(objects)
-        #if your_character_rect.colliderect(chair.rect) and chair.rect.collidepoint(event.pos) and event.type == pygame.mouse.get_pressed():
-           #print('Hello')
-
-    # basic background color (to draw over - blanc canvas to start with / reset the background at every frame)
-    
-
-    # put the separated game sections together
-    
-
-
-
-    #cafeteria.update()
-    #character.update()
     
 
     
