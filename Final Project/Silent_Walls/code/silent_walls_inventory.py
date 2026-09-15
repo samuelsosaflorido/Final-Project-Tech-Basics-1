@@ -141,4 +141,4 @@ class Inventory:
         controls_surf = small_font.render("[ARROWS] Select Slot | [TAB / ESC] Close", True, (140, 135, 130))
         screen.blit(controls_surf, (panel_x + 20, panel_y + panel_h - 22))
 
-    # Inventorty (by Samuel Sosa Florido) end
+

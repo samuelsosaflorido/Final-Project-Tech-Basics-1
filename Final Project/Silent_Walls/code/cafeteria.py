@@ -12,7 +12,6 @@ FONT = pygame.font.SysFont("Arial", 24)
 
 class Cafeteria():
     def __init__(self):
-        # Positionen und Größen angepasst (Beispielwerte – gerne weiter anpassen)
         self.food = Food(250, 190)
         self.table1 = Table1(30, 320)
         self.table2 = Table2(700, 300)
@@ -21,12 +20,11 @@ class Cafeteria():
         self.key = Key(50, 10)             # in the Trash
         self.medicine = Medicine(600, 90)  # the Skeleton has the medicine
 
-        # Zustände / Sichtbarkeit
         self.letter_visible = False
         self.key_found = False
         self.medicine_given = False
 
-        # Skelett-Dialog (Frage-Antwort-System)
+        # Skelett-Question
         self.talking_to_skeleton = False
         self.question_answered = False
         self.question = "Germans are known for the love for bread, but how many types of bread do they have?"
