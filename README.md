@@ -1,4 +1,4 @@
-Hello! 
+Hello! Hello! 
 
 We are Katharina Noske, Karoline Fischer and Samuel Domingo Sosa Florido
 
