@@ -1,23 +1,26 @@
 
 
-Hello! Welcome everybody to our game. We are Katharina Noske, Karoline Fischer and Samuel Domingo Sosa Florido
-We would like to present the readme of our game :) 
+Hello! Welcome to Silent Walls! 
+
+We are Katharina Noske, Karoline Fischer and Samuel Domingo Sosa Florido
+
+We would like to present some of the main ideas and mechanics of our game :) 
 
 # SILENT WALLS 
 
 <img width="567" height="222" alt="image" src="https://github.com/user-attachments/assets/b23ac44f-78b1-4d12-805b-114c4a17d643" />
 
 
-
-Welcome to Silent Walls! In this game you will have to escape from a prison, solve puzzles and try to find a way out
+In this game you will have to escape from a prison, solve puzzles and try to find a way out
 You will explore different rooms through the entire gameplay, interact with different minigames within the game and find items that will help you escape. 
 The main concept of the game combines the scape room, with a horror aesthetic and elements, inspired by games such as Silent Hill 2, and other examples, like Pacman, as we will see later on.
 We also developed the art for the game, such as the environment, objects, items, NPCs, the character itself. 
+
 The story is also created by us :)
 
 # # CONTROLS 
 The movements and navigation through the game shall be done using the Key Arrows
-Additionally, we also added the click mouse (similar to other one-point-click games) to interact with the NPCs (mostly the Skeleton Ghosts) to get clues
+Additionally, we also added the click mouse (similar to other one-point-click games) to interact with the NPCs to get clues
 We also added the TAB function for the inventory, the ESC button as well and the SPACE bar but mostly the movement is done with the arrow keys and using the mouse click 
 
 ### Installation
