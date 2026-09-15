@@ -6,7 +6,6 @@ We are Katharina Noske, Karoline Fischer and Samuel Domingo Sosa Florido
 
 And welcome to.....!
 
-# SILENT WALLS 
 
 <img width="567" height="222" alt="image" src="https://github.com/user-attachments/assets/b23ac44f-78b1-4d12-805b-114c4a17d643" />
 
