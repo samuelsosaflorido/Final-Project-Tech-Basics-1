@@ -11,7 +11,7 @@ import pygame
 from sys import *
 from silent_walls_character import Character
 # from silent_walls_inventory import *
-from start_text import * 
+from silent_walls_intro_text import * 
 # from silent_walls_maze import *
 # from hospital import *
 from cafeteria import *
