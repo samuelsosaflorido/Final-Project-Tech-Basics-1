@@ -1,6 +1,8 @@
 # the Inventory (by Samuel Sosa Florido):
 
 # if more items needed => add them here
+import pygame  
+
 ALL_ITEMS = [
     "Key (Cell)",
     "Key (Cafeteria)",

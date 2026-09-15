@@ -1,5 +1,6 @@
 import pygame
 
+#Collision by Karo Fischer (help and explaintions by ChatAI Anthropic Claude Sonnet 4.6)
 class Character():
     def __init__(self, x, y):
         self.x = x
