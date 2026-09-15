@@ -159,7 +159,7 @@ class Yard:
 
         self.ghost = Object(530, 315, ghost_img, name="ghost")
 
-        # Key located within the floor. Had to use some help with Gemini 
+        # Ground key prop (yard_key.png)
         raw_key_path = os.path.join(self.base_dir, "yard_key.png")
         if os.path.exists(raw_key_path):
             raw_key = pygame.image.load(raw_key_path).convert_alpha()
@@ -169,7 +169,7 @@ class Yard:
             key_img.fill((212, 175, 55))
         self.key_prop = Object(160, 385, key_img, name="key")
 
-        # Carta (yard_letter.png): sprite pequeño para el suelo y grande para pop-up
+        # Letter prop (yard_letter.png)
         raw_letter_path = os.path.join(self.base_dir, "yard_letter.png")
         if os.path.exists(raw_letter_path):
             raw_letter = pygame.image.load(raw_letter_path).convert_alpha()
@@ -183,7 +183,17 @@ class Yard:
 
         self.letter_prop = Object(245, 385, letter_ground_img, name="letter_prop")
 
-        # Interactive yard objects
+        # Medication prop placed right next to the skeleton ghost (x=625, y=370)
+        raw_med_path = os.path.join(self.base_dir, "yard_medication.png")
+        if os.path.exists(raw_med_path):
+            raw_med = pygame.image.load(raw_med_path).convert_alpha()
+            med_img = pygame.transform.scale(raw_med, (34, 34))
+        else:
+            med_img = pygame.Surface((34, 34), pygame.SRCALPHA)
+            med_img.fill((200, 40, 40))
+        self.medication_prop = Object(625, 370, med_img, name="medication")
+
+        # Interactive hitboxes for yard objects
         weights_surface = pygame.Surface((80, 80), pygame.SRCALPHA)
         dumbbells_surface = pygame.Surface((80, 80), pygame.SRCALPHA)
         gallows_surface = pygame.Surface((160, 100), pygame.SRCALPHA)
@@ -250,7 +260,7 @@ class Yard:
         player_x = self.your_character.rect.centerx
         player_y = self.your_character.rect.centery
 
-        # For the letter 
+        # Close note overlay if open
         if self.show_note:
             self.show_note = False
             return
@@ -261,8 +271,6 @@ class Yard:
                 for char, r in self.puzzle.letter_buttons.items():
                     if r.collidepoint(mouse_pos):
                         self.puzzle.guess(char)
-                        if self.puzzle.solved:
-                            self.found_medication_yard = True
                         break
 
             if self.puzzle.failed and self.puzzle_retry_btn.collidepoint(mouse_pos):
@@ -286,6 +294,7 @@ class Yard:
 
         # Handle exploration clicks
         if self.state == "EXPLORE":
+            # 1. Pick up key from ground
             if not self.found_key_yard and self.key_prop.rect.collidepoint(mouse_pos):
                 dist = math.hypot(self.key_prop.rect.centerx - player_x, self.key_prop.rect.centery - player_y)
                 if dist < 120:
@@ -297,7 +306,7 @@ class Yard:
                     self.feedback_timer = 90
                 return
 
-            # Obtaining the key 
+            # 2. Pick up letter from ground
             if not self.has_letter_yard and self.letter_prop.rect.collidepoint(mouse_pos):
                 dist = math.hypot(self.letter_prop.rect.centerx - player_x, self.letter_prop.rect.centery - player_y)
                 if dist < 120:
@@ -310,12 +319,27 @@ class Yard:
                     self.feedback_timer = 90
                 return
 
-            # Skeleton Ghost dialogue trigger
+            # 3. Pick up medication placed next to the skeleton ghost
+            if self.puzzle.solved and not self.found_medication_yard and self.medication_prop.rect.collidepoint(mouse_pos):
+                dist = math.hypot(self.medication_prop.rect.centerx - player_x, self.medication_prop.rect.centery - player_y)
+                if dist < 120:
+                    self.found_medication_yard = True
+                    self.feedback_message = "You obtained 'Medication (Yard)'!"
+                    self.feedback_timer = 160
+                else:
+                    self.feedback_message = "You need to come closer to grab the medication"
+                    self.feedback_timer = 90
+                return
+
+            # 4. Skeleton Ghost dialogue trigger
             if self.ghost.rect.collidepoint(mouse_pos):
                 dist = math.hypot(self.ghost.rect.centerx - player_x, self.ghost.rect.centery - player_y)
                 if dist < 140:
                     if self.found_medication_yard:
                         self.feedback_message = "The Skeleton Ghost watches quietly. You already proved your worth."
+                        self.feedback_timer = 110
+                    elif self.puzzle.solved:
+                        self.feedback_message = "Skeleton Ghost: 'The Medication is right there. Take it.'"
                         self.feedback_timer = 110
                     else:
                         self.state = "DIALOGUE"
@@ -325,7 +349,7 @@ class Yard:
                     self.feedback_timer = 90
                 return
 
-            # 4. Yard props (si haces clic en las pesas se vuelve a leer la carta)
+            # 5. Yard props (re-read letter from weights if already collected)
             for prop in self.interactive_props:
                 if prop.rect.collidepoint(mouse_pos):
                     dist = math.hypot(prop.rect.centerx - player_x, prop.rect.centery - player_y)
@@ -341,28 +365,31 @@ class Yard:
             if pygame.K_a <= event.key <= pygame.K_z:
                 char = chr(event.key).upper()
                 self.puzzle.guess(char)
-                if self.puzzle.solved:
-                    self.found_medication_yard = True
 
     def update(self):
         if self.feedback_timer > 0:
             self.feedback_timer -= 1
 
     def draw(self, screen):
+        # Draw background and environment layers
         screen.blit(self.bg, (0, 0))
         screen.blit(self.weights_layer, (0, 0))
         screen.blit(self.dumbbell_layer, (0, 0))
         screen.blit(self.gallows_layer, (0, 0))
 
-        # This is basically when you don't take the key so it draws itself
+        # Only draw ground key if not yet collected
         if not self.found_key_yard:
             self.key_prop.draw(screen)
 
-        # The letter will only appear on the floor if it has not been taken 
+        # Only draw ground letter if not yet collected
         if not self.has_letter_yard:
             self.letter_prop.draw(screen)
 
-        # Character screen definition using conditional statements for this 
+        # Draw medication prop right next to the ghost after solving hangman
+        if self.puzzle.solved and not self.found_medication_yard:
+            self.medication_prop.draw(screen)
+
+        # Depth-ordered rendering for character and ghost
         if self.your_character.rect.bottom < self.ghost.rect.bottom:
             self.your_character.draw(screen)
             self.ghost.draw(screen)
@@ -370,12 +397,12 @@ class Yard:
             self.ghost.draw(screen)
             self.your_character.draw(screen)
 
-        # Feedback textual
+        # Draw feedback text
         if self.feedback_timer > 0:
             txt = self.small_font.render(self.feedback_message, True, (212, 175, 55))
             screen.blit(txt, (WINDOW_WIDTH // 2 - txt.get_width() // 2, 440))
 
-        # Rendering the text with a big screen 
+        # Large inspection overlay for letter
         if self.show_note:
             overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA)
             overlay.fill((0, 0, 0, 185))
@@ -389,7 +416,7 @@ class Yard:
             hint = self.small_font.render("[Click anywhere to close]", True, (220, 215, 200))
             screen.blit(hint, (WINDOW_WIDTH // 2 - hint.get_width() // 2, 435))
 
-        # Dialogue options with the Skeleton Ghost 
+        # Dialogue box overlay
         elif self.state == "DIALOGUE":
             node = self.dialogue_nodes[self.current_dialogue]
             box = pygame.Rect(140, 320, 700, 130)
@@ -409,7 +436,7 @@ class Yard:
             screen.blit(txt1, (self.dialogue_btn1.x + 10, self.dialogue_btn1.y + 8))
             screen.blit(txt2, (self.dialogue_btn2.x + 10, self.dialogue_btn2.y + 8))
 
-        # Hangman's interface 
+        # Hangman mini-game overlay
         if self.puzzle.is_open:
             self.puzzle.draw(screen, self.small_font, self.big_font)
             self.puzzle_exit_btn = pygame.Rect(720, 330, 80, 28)
