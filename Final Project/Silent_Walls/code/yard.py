@@ -8,7 +8,7 @@
 import math
 import os
 import pygame
-import inventory 
+import silent_walls_inventory
 
 
 # Basic pygame setup
@@ -501,7 +501,7 @@ yard = Yard(player)
 
 running = True
 while running:
-    inventory_open = getattr(inventory, "is_open", False)
+    inventory_open = getattr(silent_walls_inventory, "is_open", False)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -510,10 +510,10 @@ while running:
         elif event.type == pygame.KEYDOWN:
             # TAB key toggles inventory open/closed
             if event.key == pygame.K_TAB:
-                if hasattr(inventory, "toggle"):
-                    inventory.toggle()
-                elif hasattr(inventory, "is_open"):
-                    inventory.is_open = not inventory.is_open
+                if hasattr(silent_walls_inventory, "toggle"):
+                    silent_walls_inventory.toggle()
+                elif hasattr(silent_walls_inventory, "is_open"):
+                    silent_walls_inventory.is_open = not silent_walls_inventory.is_open
             else:
                 # Only pass keys to Yard (Hangman typing) if inventory is closed
                 if not inventory_open:
@@ -522,8 +522,8 @@ while running:
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             # Route mouse clicks to inventory if open, else to yard exploration
             if inventory_open:
-                if hasattr(inventory, "handle_click"):
-                    inventory.handle_click(event.pos)
+                if hasattr(silent_walls_inventory, "handle_click"):
+                    silent_walls_inventory.handle_click(event.pos)
             else:
                 yard.handle_click(event.pos)
 
@@ -538,8 +538,8 @@ while running:
     yard.draw(screen)
 
     # Render inventory overlay on top of everything when open
-    if inventory_open and hasattr(inventory, "draw"):
-        inventory.draw(screen)
+    if inventory_open and hasattr(silent_walls_inventory, "draw"):
+        silent_walls_inventory.draw(screen)
 
     pygame.display.flip()
     clock.tick(60)

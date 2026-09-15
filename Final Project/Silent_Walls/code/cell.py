@@ -4,8 +4,8 @@ import random
 import os
 import sys
 
-from character import Character
-from inventory import Inventory
+from silent_walls_character import Character
+from silent_walls_inventory import Inventory
 
 # Setzt den Pfad immer relativ zur .py Datei
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
