@@ -29,13 +29,11 @@ To start our game: run silent_walls.py (our main file)!
 # GAMEPLAY AND LEVEL DESIGN 
 
 You will control a character who is trapped in a Prison. 
-You begin in the Hospital of the Prison. This area is important as it provides the clues to escape. After this, you will continue moving and find yourself into the Maze which will connect all the areas and allow the player to go through the entire area. 
+We tried to implement the Hospital as the main area of the game but ended being the Maze which will connect all the areas and allow the player to go through the entire area. 
 
 <img width="1226" height="501" alt="image" src="https://github.com/user-attachments/assets/cbd634b7-76c3-47d4-866a-017264b9269a" /> 
 
-The Maze also has a small combat encounter done with the key arrows with a rat that is moving around the area, similar to the ghosts of Pacman. We also did some health bar for this part using Pygame to make this area of the game a little bit more challenging 
-
-After this, the player will be able to choose which room should be the first one. You can find the Cafeteria, the Cells and the Yard. Each room contains the similar items: keys, letters and the medication. There are in total three pieces of each item spread through the different rooms. So you will have to navigate, explore, interact and solve the puzzles in order to escape. Depending on the items you collect, you will get a different ending. Which...could be good or maybe bad? 
+The Maze also has a small  encounter done with a rat that is moving around the area, similar to the ghosts of Pacman. After this, the player will be able to choose which room should be the first one. You can find the Cafeteria, the Cells and the Yard. Each room contains the similar items: keys, letters and the medication. There are in total three pieces of each item spread through the different rooms. So you will have to navigate, explore, interact and solve the puzzles in order to escape. Depending on the items you collect, you will get a different ending. Which...could be good or maybe bad? 
 
 It is your choice to decide your fate
 
