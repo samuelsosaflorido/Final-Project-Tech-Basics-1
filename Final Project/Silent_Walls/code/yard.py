@@ -1,4 +1,5 @@
 # Yard = Room by Samuel
+# All Pixel Art here is done by me 
 # adjusted by Karo Fischer to make room/maze/hospital connection possible + iron out bugs
 
 # So this is a demo of the yard I have made some dialogue and options and used the pixel art image that we showed during the presentation as a test
