@@ -1,4 +1,5 @@
 # mainly by Katharina Noske (other coding parts form Samuel Sosa Florido or Karoline Fischer will be pointed out)
+# adjusted by Karo Fischer to make room/maze/hospital connection possible + iron out bugs
 
 # unfortunately we started with coding the game separately in different files
 # so we faced the issue to combine it into ONE compleet game
@@ -10,15 +11,15 @@ import pygame
 # import (from other files in our main file)
 from sys import *
 from silent_walls_character import Character
-# from silent_walls_inventory import *
-from silent_walls_intro_text import * 
-# from silent_walls_maze import *
-# from hospital import *
-from cafeteria import *
-from yard import * 
-from cell import *
+from silent_walls_intro_text import show_intro_text 
+from cafeteria import Cafeteria
+from yard import Yard
+from cell import Cell
+from silent_walls_maze import *
 # from scipy._lib.pyprima.cobyla import update
 from silent_walls_endings import *
+from silent_walls_inventory import Inventory
+from hospital import Hospital
 
 import os
 import sys
@@ -54,6 +55,57 @@ class Room:
                 return exit_name
         return None
 
+
+class HospitalUnlockedPopup():
+    def __init__ (self):
+        self.active = False
+        self.font = pygame.font.SysFont("Arial", 24)
+        self.small_font = pygame.font.SysFont("Arial", 18)
+
+    def show(self):
+        self.active = True
+
+    def draw(self, screen):
+        if not self.active:
+            return
+
+        overlay = pygame.Surface((980, 480), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 180))
+        screen.blit(overlay, (0, 0))
+
+        popup_rect = pygame.Rect(190, 150, 600, 180)
+        pygame.draw.rect(screen, (15, 10, 15), popup_rect, border_radius=6)
+        pygame.draw.rect(screen, (140, 30, 30), popup_rect, 2, border_radius=6)
+
+        line1 = self.font.render("You've been to every room now.", True, (230, 225, 210))
+        line2 = self.font.render("Do you want to try your luck at the hospital", True, (230, 225, 210))
+        line3 = self.font.render("or keep exploring?", True, (230, 225, 210))
+        
+        screen.blit(line1, (popup_rect.x + 20, popup_rect.y + 20))
+        screen.blit(line2, (popup_rect.x + 20, popup_rect.y + 55))
+        screen.blit(line3, (popup_rect.x + 20, popup_rect.y + 85))
+
+        h_hint = self.small_font.render("[H] Go to Hospital", True, (200, 180, 120))
+        explore_hint = self.small_font.render("[ESC] Keep Exploring", True, (200, 180, 120))
+        
+        screen.blit(h_hint, (popup_rect.x + 20, popup_rect.y + 140))
+        screen.blit(explore_hint, (popup_rect.x + 300, popup_rect.y + 140))
+
+    def handle_input(self, event):
+        if not self.active:
+            return None
+        
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_h:
+                self.active = False
+                return "hospital"  # ← ins Hospital!
+            if event.key == pygame.K_ESCAPE:
+                self.active = False
+                return "explore"   # ← weiter erkunden
+        
+        return None  
+
+     
 # Placeholder for the Rooms
 class SimpleRoom(Room):
     def __init__(self, name, color, entry_pos=(50, 200)):
@@ -67,120 +119,167 @@ class SimpleRoom(Room):
         screen.fill(self.color)
         pygame.draw.rect(screen, (255, 0, 0), self.exits["maze"])
 
-# from the Maze into our Rooms
-class Maze(Room):
-    def __init__(self):
-        super().__init__("maze")
-        self.entry_pos = (50, 200)
 
-        self.exit_rects = {
-            "exit_1": pygame.Rect(900, 50, 40, 40),
-            "exit_2": pygame.Rect(900, 200, 40, 40),
-            "exit_3": pygame.Rect(900, 350, 40, 40),
-        }
-
-        self.destinations = []
-
-    def set_destinations(self, destinations):
-        """destinations = Liste mit 3 Raum-Namen in Reihenfolge exit_1, exit_2, exit_3"""
-        self.destinations = destinations
-
-    def draw(self, screen):
-        screen.fill((40, 40, 40))
-        for rect in self.exit_rects.values():
-            pygame.draw.rect(screen, (0, 255, 0), rect)
-
-    def check_exits(self, character):
-        for i, rect in enumerate(self.exit_rects.values()):
-            if character.rect.colliderect(rect):
-                return self.destinations[i]
-        return None
 
 # basic Game Loop
 class Game:
-    ALL_ROOMS = ["cell", "hospital", "cafeteria", "yard"]
+    ALL_ROOMS = ["cell", "cafeteria", "yard"]
 
     def __init__(self):
         self.character = Character(50, 200)
+        self.inventory = Inventory()
+        self.cell = Cell(self.character)
+        self.hospital = Hospital()
 
-        self.rooms = {
-            "cell": SimpleRoom("cell", (100, 100, 150)),
-            "hospital": SimpleRoom("hospital", (200, 200, 200)),
-            "cafeteria": SimpleRoom("cafeteria", (150, 100, 50)),
-            "yard": SimpleRoom("yard", (50, 150, 50)),
+        self.hospital_popup = HospitalUnlockedPopup()
+        self.hospital_unlocked = False
+
+        self.completed_rooms = {
+            "cell": False,
+            "cafeteria": False,
+            "yard": False,
         }
+
+        self.cell = Cell(self.character)
+        self.yard = Yard(self.character)
+        self.cafeteria = Cafeteria()
+
         self.maze = Maze()
+        self.maze.set_destinations({
+            "left": "cell",
+            "right": "yard",
+            "bottom": "cafeteria",
+        })
+        print("DESTINATIONS gesetzt:", self.maze.destinations)
 
         # Start position
-        self.current_state = "hospital"
-        self.previous_room = "hospital"
+        self.current_state = "maze"
+        
+
+    def complete_room(self, room_name):
+        self.completed_rooms[room_name] = True
+
+        if all(self.completed_rooms.values()) and not self.hospital_unlocked:
+            self.hospital_unlocked = True
+            self.hospital_popup.show()
 
     def enter_maze(self, coming_from):
-        if coming_from == "hospital":
-            destinations = ["cell", "cafeteria", "yard"]
-        else:
-            destinations = [r for r in self.ALL_ROOMS if r != coming_from]
-
-        self.maze.set_destinations(destinations)
         self.current_state = "maze"
-        self.character.set_pos(*self.maze.entry_pos)
+        self.maze.enter_from(coming_from)
+
+    ROOM_ENTRY_POINTS = {
+        "cell": (50, 300),
+        "cafeteria": (200, 300),
+        "yard": (200, 390),
+    }
 
     def enter_room(self, room_name):
+        print("enter_room aufgerufen mit:", room_name)
         self.current_state = room_name
-        self.previous_room = room_name
-        self.character.set_pos(*self.rooms[room_name].entry_pos)
+        x, y = self.ROOM_ENTRY_POINTS.get(room_name, (50, 300))
+        self.character.set_pos(x, y)
 
-    def update(self):
-        self.character.move()
+    def enter_hospital(self):
+        self.current_state = "hospital"
+        self.character.set_pos(450, 400)
 
+    def update(self, events):
+        for event in events:
+            result = self.hospital_popup.handle_input(event)
+            if result == "hospital":
+                self.enter_hospital() 
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_h and self.hospital_unlocked:
+                    if self.current_state == "maze":
+                        self.enter_hospital()
+
+        if self.hospital_popup.active:
+            return
+
+        #update the rooms
         if self.current_state == "maze":
-            objects = self.maze.objects if hasattr(self.maze, 'objects') else []
-        else:
-            current_room = self.rooms[self.current_state]
-            objects = current_room.objects if hasattr(current_room, 'objects') else []
-
-        self.character.update(objects)
-
-        if self.current_state == "maze":
-            result = self.maze.check_exits(self.character)
+            self.maze.update(self.character)
+            result = self.maze.check_exits()
             if result:
                 self.enter_room(result)
-        else:
-            current_room = self.rooms[self.current_state]
-            result = current_room.check_exits(self.character)
-            if result == "maze":
-                self.enter_maze(self.previous_room)
+
+        elif self.current_state == "cell":
+            self.cell.update(events, self.inventory)
+            if self.character.rect.left <= 0:
+                self.complete_room("cell")
+                self.enter_maze("cell")
+
+        elif self.current_state == "cafeteria":
+            self.cafeteria.update(self.character, events, self.inventory)
+            if self.character.rect.left <= 0:
+                self.complete_room("cafeteria")
+                self.enter_maze()
+
+        elif self.current_state == "yard":
+            if self.yard.state == "EXPLORE" and not self.yard.puzzle.is_open and not self.yard.show_note:
+                self.yard.move_character(self.character)
+            for event in events:
+                if event.type == pygame.KEYDOWN:
+                    self.yard.handle_key(event)
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    self.yard.handle_click(event.pos)
+            self.yard.update()
+            if self.character.rect.left <= 0:
+                self.complete_room("yard")
+                self.enter_maze("yard")
+
+        elif self.current_state == "hospital":
+            self.character.update([], None)  # noch keine Kollisionsobjekte, siehe Hinweis unten
+            self.hospital.update(self.character, events)
+            if self.character.rect.left <= 0:
+                self.enter_maze("hospital")
 
     def draw(self, screen):
         if self.current_state == "maze":
-            self.maze.draw(screen)
-        else:
-            self.rooms[self.current_state].draw(screen)
+            self.maze.draw(screen, self.character)
 
-        self.character.draw(screen)
+            if self.hospital_unlocked:
+                font = pygame.font.SysFont("Arial", 18)
+                hint = font.render("[H] Go to Hospital", True, (200, 180, 120))
+                screen.blit(hint, (20, 20))
+
+        elif self.current_state == "cell":
+            self.cell.draw(screen)
+
+        elif self.current_state == "cafeteria":
+            self.cafeteria.draw(screen, self.character)
+
+        elif self.current_state == "yard":
+            self.yard.draw(screen)
+
+        elif self.current_state == "hospital":
+            self.hospital.draw(screen, self.character)
+
+        self.hospital_popup.draw(screen)
 
 # AI help end
 
 
 
-
-
-character = Character(500, 300)
 game = Game()
 
+show_intro_text(screen, clock)
+
+game.current_state = "maze"
 
 # back to the basic pygame-setup to run the game
 while True:
-    for event in pygame.event.get():
+    events = pygame.event.get()
+    for event in events:
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
 
-    game.update()
+    game.update(events)
+    screen.fill((0, 0, 0))
     game.draw(screen)
-
     pygame.display.update()
-    # limits FPS to 60
     clock.tick(60)
     
 

@@ -1,14 +1,14 @@
-# Cell = Room from Karo
+# Cell = Room by Karo
+# all pixelart here by Karo (except the character, that was done by Kathi)
 
 import pygame
 
 import os
-import sys
 
 from silent_walls_character import Character
 from silent_walls_inventory import Inventory
 
-# Setzt den Pfad immer relativ zur .py Datei
+#I code in VS Code and otherwise had problems with the files
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 #class Object():
@@ -32,13 +32,12 @@ class Cell():
         self.table_y = 480
 
         self.toilet = Toilet(550, 220)
-        self.chest = Chest(90, 260)
         self.shackles = Shackles(460, 80)
         self.key = Key(900,290)
         self.table = Table(290, 200)
         self.bed = Bed(680, 190)
 
-        self.chest = Chest(90, 260)
+        self.chest = Chest(120, 260)
         self.chest_popup = ChestPopup()
 
         self.on_chest = False
@@ -172,6 +171,10 @@ class Cell():
         if not self.chest.is_open and self.is_near(self.chest) and not self.chest.animate:
             self.chest.open()
 
+        #open chest again if already open
+        elif self.chest.is_open and self.is_near(self.chest):
+            self.chest_popup.show()
+
         if not self.medication.collected and self.medication.visible:
             self.medication.collected = True
             inventory.add_item("Medication (Cell)")
@@ -192,7 +195,6 @@ class Medication():
     def draw(self, screen, show_hint=False):
         if not self.collected and self.visible:
             screen.blit(self.image, self.rect)
-            pygame.draw.rect(screen, "red", self.rect, 2)
             if show_hint:
                 self.show_hint(screen)  
 
@@ -212,7 +214,6 @@ class Table():
     
     def draw(self, screen):
         screen.blit(self.image, self.rect)
-        pygame.draw.rect(screen, "red", self.rect, 2)
     
     def update(self):
         pass 
@@ -226,7 +227,6 @@ class Bed():
     
     def draw(self, screen):
         screen.blit(self.image, self.rect)
-        pygame.draw.rect(screen, "red", self.rect, 2)
     
     def update(self):
         pass
@@ -240,7 +240,6 @@ class Toilet():
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
-        pygame.draw.rect(screen, "red", self.rect, 2)
 
     def update(self):
         pass 
@@ -257,7 +256,6 @@ class Key():
     def draw(self, screen, show_hint=False):
         if not self.collected:
             screen.blit(self.image, self.rect)
-            pygame.draw.rect(screen, "red", self.rect, 2)
 
             if show_hint:
                 self.show_hint(screen)
@@ -315,7 +313,7 @@ class Chest():
 
     def show_hint(self, screen):
         hint = self.font.render("Press E to open", True, "white")
-        screen.blit(hint, (self.rect.x - 30, self.rect.y - 30))
+        screen.blit(hint, (self.rect.x - 30, self.rect.y - 50))
 
     def open(self):
         self.animate = True
@@ -343,7 +341,6 @@ class Chest():
 
     def draw(self, screen, show_hint=False):
             screen.blit(self.image, self.rect)
-            pygame.draw.rect(screen, "red", self.rect, 2)
     
             if show_hint and not self.is_open and not self.animate:
                 self.show_hint(screen)
@@ -372,9 +369,10 @@ class ChestPopup():
 
     def show(self):
         self.active = True
-        self.input_boxes = ["", "", ""]
-        self.selected_box = 0
-        self.show_code = False
+        if not self.solved:
+            self.input_boxes = ["", "", ""]
+            self.selected_box = 0
+        self.show_code = self.solved
 
     def close(self):
         self.active = False
@@ -476,7 +474,6 @@ class Shackles():
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
-        pygame.draw.rect(screen, "red", self.rect, 2)
 
     def update(self):
         pass 

@@ -1,4 +1,5 @@
 # the basic room code is by Kathi
+# adjusted by Karo Fischer to make room/maze/hospital connection possible + iron out bugs
 
 import pygame
 from silent_walls_character import *

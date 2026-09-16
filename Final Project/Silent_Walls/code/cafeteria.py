@@ -1,5 +1,7 @@
 # Cafeteria = Room by Kathi
-import objects
+# adjusted by Karo Fischer to make room/maze/hospital connection possible + iron out bugs
+
+#import objects
 # I did draw all images by myself except for the background wall - the background is from Karo
 
 import pygame
@@ -36,7 +38,7 @@ class Cafeteria():
         self.background = pygame.image.load("cell_wall.png").convert_alpha()
         self.background = pygame.transform.scale(self.background, (980, 480))
 
-    def draw(self, screen):
+    def draw(self, screen, character):
         screen.blit(self.background, (0, 0))
 
         for obj in self.objects_always:
@@ -51,6 +53,8 @@ class Cafeteria():
         if self.medicine_given:
             self.medicine.draw(screen)
 
+        character.draw(screen)
+
         if self.talking_to_skeleton and not self.question_answered:
             self.draw_question(screen)
 
@@ -60,14 +64,21 @@ class Cafeteria():
         overlay.fill((0, 0, 0, 180))
         screen.blit(overlay, (0, 0))
 
-        question_surface = FONT.render(self.question, True, (255, 255, 255))
-        screen.blit(question_surface, (300, 150))
+        line1 = "Germans are known for the love for bread,"
+        line2 = "but how many types of bread do they have?"
+
+        line1_surface = FONT.render(line1, True, (255, 255, 255))
+        line2_surface = FONT.render(line2, True, (255, 255, 255))
+        screen.blit(line1_surface, (300, 130))
+        screen.blit(line2_surface, (300, 160))
 
         for i, answer in enumerate(self.answers):
             answer_surface = FONT.render(f"{i + 1}: {answer}", True, (255, 255, 0))
             screen.blit(answer_surface, (300, 200 + i * 40))
 
-    def update(self, character, events):
+    def update(self, character, events, inventory):
+        character.update(self.objects_always, None)
+
         mouse_pos = pygame.mouse.get_pos()
 
         for event in events:
@@ -80,7 +91,7 @@ class Cafeteria():
                 if character.rect.colliderect(self.trash.rect) and self.trash.rect.collidepoint(mouse_pos):
                     if not self.key_found:
                         self.key_found = True
-                        character.inventory.append("key")
+                        inventory.add_item("Key (Cafeteria)")
 
                 # Talk to the Skeleton: Character touches Food AND pressed the mouse
                 if character.rect.colliderect(self.food.rect) and self.food.rect.collidepoint(mouse_pos):
@@ -95,11 +106,11 @@ class Cafeteria():
                 elif event.key == pygame.K_3:
                     self.check_answer(2, character)
 
-    def check_answer(self, index, character):
+    def check_answer(self, index, inventory):
         if index == self.correct_answer_index:
             self.question_answered = True
             self.medicine_given = True
-            character.inventory.append("medicine")
+            inventory.add_item("Medication (Cafeteria)")
         self.talking_to_skeleton = False
 
     # AI help end
@@ -121,6 +132,7 @@ class Table1():
         self.image = pygame.image.load("cafeteria_table.png").convert_alpha()
         self.image = pygame.transform.scale(self.image, (200, 150))
         self.rect = self.image.get_rect(topleft=(x, y))
+        self.collision_rect = pygame.Rect(x + 60, y + 100, 80, 30) 
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)

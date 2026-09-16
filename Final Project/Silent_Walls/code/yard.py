@@ -1,4 +1,5 @@
 # Yard = Room by Samuel
+# adjusted by Karo Fischer to make room/maze/hospital connection possible + iron out bugs
 
 # So this is a demo of the yard I have made some dialogue and options and used the pixel art image that we showed during the presentation as a test
 # Okay I have changed a lot in relation to how the code was earlier. I had to use the videos cited in the documentation and also some Gemini help to get some feedback
@@ -8,12 +9,13 @@
 import math
 import os
 import pygame
+from silent_walls_character import Character
 
 
 # Basic pygame setup
-pygame.init()
-screen = pygame.display.set_mode((980, 480))
-clock = pygame.time.Clock()
+# pygame.init()
+# screen = pygame.display.set_mode((980, 480))
+# clock = pygame.time.Clock()
 
 WINDOW_WIDTH = 980
 WINDOW_HEIGHT = 480
@@ -248,6 +250,52 @@ class Yard:
             }
         }
 
+    def move_character(self, character):
+        keys = pygame.key.get_pressed()
+        dx = 0
+        dy = 0
+        speed = 4
+
+        if keys[pygame.K_w] or keys[pygame.K_UP]:
+            dy -= speed
+        if keys[pygame.K_s] or keys[pygame.K_DOWN]:
+            dy += speed
+        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+            dx -= speed
+        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+            dx += speed
+
+        feet = pygame.Rect(character.rect.centerx - 13, character.rect.bottom - 16, 26, 16)
+
+        feet.x += dx
+        for obs in self.obstacles:
+            if feet.colliderect(obs):
+                if dx > 0:
+                    feet.right = obs.left
+                elif dx < 0:
+                    feet.left = obs.right
+
+        feet.y += dy
+        for obs in self.obstacles:
+            if feet.colliderect(obs):
+                if dy > 0:
+                    feet.bottom = obs.top
+                elif dy < 0:
+                    feet.top = obs.bottom
+
+        if feet.top < self.wall_limit_y:
+            feet.top = self.wall_limit_y
+        if feet.bottom > 460:
+            feet.bottom = 460
+        if feet.left < 0:          # war vorher 35 - auf 0 gesetzt, damit
+            feet.left = 0          # der "zurück ins Maze"-Trigger (rect.left<=0) funktioniert
+        if feet.right > WINDOW_WIDTH - 35:
+            feet.right = WINDOW_WIDTH - 35
+
+        character.rect.bottom = feet.bottom
+        character.rect.centerx = feet.centerx
+        character.update_hitbox()
+
     def _load_canvas_layer(self, filename, alpha=True):
         full_path = os.path.join(self.base_dir, filename)
         if os.path.exists(full_path):
@@ -450,112 +498,113 @@ class Yard:
 
 
 # Character class with feet-based collision
-class Character:
-    def __init__(self, x, y):
-        self.speed = 4
-        if os.path.exists("your_character.png"):
-            self.image = pygame.image.load("your_character.png").convert_alpha()
-        else:
-            self.image = pygame.Surface((50, 70))
-            self.image.fill((60, 120, 200))
+# class Character:
+#     def __init__(self, x, y):
+#         self.speed = 4
+#         if os.path.exists("your_character.png"):
+#             self.image = pygame.image.load("your_character.png").convert_alpha()
+#         else:
+#             self.image = pygame.Surface((50, 70))
+#             self.image.fill((60, 120, 200))
 
-        self.transform_image = pygame.transform.scale(self.image, (50, 70))
-        self.rect = self.transform_image.get_rect(topleft=(x, y))
-        self.x = self.rect.x
-        self.y = self.rect.y
+#         self.transform_image = pygame.transform.scale(self.image, (50, 70))
+#         self.rect = self.transform_image.get_rect(topleft=(x, y))
+#         self.x = self.rect.x
+#         self.y = self.rect.y
 
-    def get_feet_rect(self):
-        return pygame.Rect(self.rect.x + 12, self.rect.bottom - 16, 26, 16)
+#     def get_feet_rect(self):
+#         return pygame.Rect(self.rect.x + 12, self.rect.bottom - 16, 26, 16)
 
-    def draw(self, screen):
-        screen.blit(self.transform_image, self.rect)
+#     def draw(self, screen):
+#         screen.blit(self.transform_image, self.rect)
 
-    def move(self, obstacles, wall_limit_y):
-        keys = pygame.key.get_pressed()
-        dx = 0
-        dy = 0
+#     def move(self, obstacles, wall_limit_y):
+#         keys = pygame.key.get_pressed()
+#         dx = 0
+#         dy = 0
 
-        if keys[pygame.K_w] or keys[pygame.K_UP]:
-            dy -= self.speed
-        if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-            dy += self.speed
-        if keys[pygame.K_a] or keys[pygame.K_LEFT]:
-            dx -= self.speed
-        if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
-            dx += self.speed
+#         if keys[pygame.K_w] or keys[pygame.K_UP]:
+#             dy -= self.speed
+#         if keys[pygame.K_s] or keys[pygame.K_DOWN]:
+#             dy += self.speed
+#         if keys[pygame.K_a] or keys[pygame.K_LEFT]:
+#             dx -= self.speed
+#         if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
+#             dx += self.speed
 
-        feet = self.get_feet_rect()
+#         feet = self.get_feet_rect()
 
-        # Horizontal movement and obstacle collision
-        feet.x += dx
-        for obs in obstacles:
-            if feet.colliderect(obs):
-                if dx > 0:
-                    feet.right = obs.left
-                elif dx < 0:
-                    feet.left = obs.right
+#         # Horizontal movement and obstacle collision
+#         feet.x += dx
+#         for obs in obstacles:
+#             if feet.colliderect(obs):
+#                 if dx > 0:
+#                     feet.right = obs.left
+#                 elif dx < 0:
+#                     feet.left = obs.right
 
-        # Vertical movement and obstacle collision
-        feet.y += dy
-        for obs in obstacles:
-            if feet.colliderect(obs):
-                if dy > 0:
-                    feet.bottom = obs.top
-                elif dy < 0:
-                    feet.top = obs.bottom
+#         # Vertical movement and obstacle collision
+#         feet.y += dy
+#         for obs in obstacles:
+#             if feet.colliderect(obs):
+#                 if dy > 0:
+#                     feet.bottom = obs.top
+#                 elif dy < 0:
+#                     feet.top = obs.bottom
 
-        # Room boundary enforcement
-        if feet.top < wall_limit_y:
-            feet.top = wall_limit_y
-        if feet.bottom > 460:
-            feet.bottom = 460
-        if feet.left < 35:
-            feet.left = 35
-        if feet.right > WINDOW_WIDTH - 35:
-            feet.right = WINDOW_WIDTH - 35
+#         # Room boundary enforcement
+#         if feet.top < wall_limit_y:
+#             feet.top = wall_limit_y
+#         if feet.bottom > 460:
+#             feet.bottom = 460
+#         if feet.left < 35:
+#             feet.left = 35
+#         if feet.right > WINDOW_WIDTH - 35:
+#             feet.right = WINDOW_WIDTH - 35
 
-        # Re-anchor sprite position strictly to feet
-        self.rect.bottom = feet.bottom
-        self.rect.centerx = feet.centerx
-        self.x = self.rect.x
-        self.y = self.rect.y
+#         # Re-anchor sprite position strictly to feet
+#         self.rect.bottom = feet.bottom
+#         self.rect.centerx = feet.centerx
+#         self.x = self.rect.x
+#         self.y = self.rect.y
 
-    def update(self):
-        pass
+#     def update(self):
+#         pass
 
-    def set_pos(self, x, y):
-        self.rect.topleft = (x, y)
-        self.x = x
-        self.y = y
+#     def set_pos(self, x, y):
+#         self.rect.topleft = (x, y)
+#         self.x = x
+#         self.y = y
 
 
 # Main Game Loop
-player = Character(200, 390)
-yard = Yard(player)
+if __name__ == "__main__":
+    player = Character(200, 390)
+    yard = Yard(player)
 
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
 
-        elif event.type == pygame.KEYDOWN:
-            yard.handle_key(event)
+            elif event.type == pygame.KEYDOWN:
+                yard.handle_key(event)
 
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            yard.handle_click(event.pos)
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                yard.handle_click(event.pos)
 
-    # Move player only when not paused by dialogue, note or puzzle
-    if yard.state == "EXPLORE" and not yard.puzzle.is_open and not yard.show_note:
-        player.move(yard.obstacles, yard.wall_limit_y)
+        # Move player only when not paused by dialogue, note or puzzle
+        if yard.state == "EXPLORE" and not yard.puzzle.is_open and not yard.show_note:
+            player.move(yard.obstacles, yard.wall_limit_y)
 
-    player.update()
-    yard.update()
+        player.update()
+        yard.update()
 
-    # Base scene rendering
-    yard.draw(screen)
+        # Base scene rendering
+        yard.draw(screen)
 
-    pygame.display.flip()
-    clock.tick(60)
+        pygame.display.flip()
+        clock.tick(60)
 
-pygame.quit()
+    pygame.quit()

@@ -2,6 +2,7 @@
 
 import pygame
 
+
 #Collision by Karo Fischer (help and explanations by ChatAI Anthropic Claude Sonnet 4.6)
 #also code for room "cell" by Karo 
 class Character():
@@ -74,7 +75,9 @@ class Character():
 
     def check_collision(self, objects):
         for obj in objects:
-            if self.hitbox.colliderect(obj.rect):
+            #for table1 in cafeteria 
+            hitbox = getattr(obj, "collision_rect", obj.rect)
+            if self.hitbox.colliderect(hitbox):
                 return True
         return False
 
