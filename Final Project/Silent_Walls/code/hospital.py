@@ -28,12 +28,16 @@ class Hospital():
         self.objects = [self.bed, self.table, self.door1, self.door2, self.skeleton]
         self.intro_shown = False
 
-    def draw(self, screen):
+    def draw(self, screen, character):
         screen.blit(self.background, (0, 0))
         for obj in self.objects:
             obj.draw(screen)
+        character.draw(screen)
 
-    def update(self, character, events, screen, clock):
+    def update(self, character, events):
+        screen = pygame.display.get_surface()
+        clock = pygame.time.Clock()
+
         if not self.intro_shown:
             show_intro_text(screen, clock)
             self.intro_shown = True
