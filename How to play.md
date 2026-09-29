@@ -5,7 +5,7 @@ We will go now through the different areas of the game
 # YARD 
 After going through th maze, one of the main rooms of the game is the Yard. Following the previous logic, you can interact with the mouse with the different NPCS
 For the Ghost Puzzle the player can use the keyboard to type the different answers to obtain the medication fragment of the Ghost, the oher items can be obtained using the mouse click button
-The movements here can be executed using the key arrows. In the previous demo of this area, the SPACE option was introduced as the player had to dig to obtain the medication fragment after obtaining the coordinates. This was later removed in order to simplify the logic of this area so it could be better programmed
+The movements here can be executed using both the WASD and the key arrows. In the previous demo of this area, the SPACE option was introduced as the player had to dig to obtain the medication fragment after obtaining the coordinates. This was later removed in order to simplify the logic of this area so it could be better programmed
 There are also some issues with the TAB function which was intended for the inventory, sadly this cannot be seen but in previous versions the player could see an inventory interface where you could see the different slots and how many items does the player have
 # CELLS
 # CAFETERIA 
