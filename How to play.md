@@ -52,3 +52,25 @@ To pick up the key, press 'E'.
 
 # CAFETERIA
 #### (Bottom exit maze)
+In the Cafeteria there is a letter lying on a table on the right, a trashcan has spilled and a skeleton is standing behind the food counter. These are the three objects/NPCs you have to go to in order to find the needed objects. 
+
+##### The Letter:
+- has to be clicked on with the mouse and then the highlighted numbers are the right ones
+- you have to remember it
+
+##### The Trashcan:
+- in the trashcan you find the key
+- just click on it with the mouse and it gets added to the inventory
+
+##### The Skeleton:
+- click on the skeleton and it will ask you a question
+- to give an answer simply type the corresponding number on the keyboard
+- if the answer is correct, the medicine gets added to the inventory
+
+General movement of the character is done by pressing WASD. 
+
+
+
+
+
+
